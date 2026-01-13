@@ -478,19 +478,17 @@ function IdeaCard({ idea, index, onDelete, onStatusChange }: IdeaCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={(e) => {
-                e.stopPropagation()
+              <DropdownMenuItem onSelect={(e) => {
                 e.preventDefault()
-                console.log('[IdeaCard] View clicked, idea:', { id: idea.id, title: idea.title })
+                console.log('[IdeaCard] View clicked, navigating to:', `/ideas/${idea.id}`)
                 router.push(`/ideas/${idea.id}`)
               }}>
                 <Eye className="h-4 w-4 mr-2" />
                 View
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => {
-                e.stopPropagation()
+              <DropdownMenuItem onSelect={(e) => {
                 e.preventDefault()
-                console.log('[IdeaCard] Edit clicked, idea:', { id: idea.id, title: idea.title })
+                console.log('[IdeaCard] Edit clicked, navigating to:', `/ideas/${idea.id}`)
                 router.push(`/ideas/${idea.id}`)
               }}>
                 <Edit className="h-4 w-4 mr-2" />
@@ -499,10 +497,9 @@ function IdeaCard({ idea, index, onDelete, onStatusChange }: IdeaCardProps) {
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 className="text-red-600"
-                onClick={(e) => {
-                  e.stopPropagation()
+                onSelect={(e) => {
                   e.preventDefault()
-                  console.log('[IdeaCard] Delete clicked, idea:', { id: idea.id, title: idea.title })
+                  console.log('[IdeaCard] Delete clicked for idea:', idea.id)
                   onDelete(idea)
                 }}
               >
@@ -637,19 +634,17 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={(e) => {
-                e.stopPropagation()
+              <DropdownMenuItem onSelect={(e) => {
                 e.preventDefault()
-                console.log('[IdeaListItem] View clicked, idea:', { id: idea.id, title: idea.title })
+                console.log('[IdeaListItem] View clicked, navigating to:', `/ideas/${idea.id}`)
                 router.push(`/ideas/${idea.id}`)
               }}>
                 <Eye className="h-4 w-4 mr-2" />
                 View
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => {
-                e.stopPropagation()
+              <DropdownMenuItem onSelect={(e) => {
                 e.preventDefault()
-                console.log('[IdeaListItem] Edit clicked, idea:', { id: idea.id, title: idea.title })
+                console.log('[IdeaListItem] Edit clicked, navigating to:', `/ideas/${idea.id}`)
                 router.push(`/ideas/${idea.id}`)
               }}>
                 <Edit className="h-4 w-4 mr-2" />
@@ -658,10 +653,9 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 className="text-red-600"
-                onClick={(e) => {
-                  e.stopPropagation()
+                onSelect={(e) => {
                   e.preventDefault()
-                  console.log('[IdeaListItem] Delete clicked, idea:', { id: idea.id, title: idea.title })
+                  console.log('[IdeaListItem] Delete clicked for idea:', idea.id)
                   onDelete(idea)
                 }}
               >
