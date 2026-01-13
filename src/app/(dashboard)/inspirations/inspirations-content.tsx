@@ -717,16 +717,16 @@ export function InspirationsContent({ inspirations: initialInspirations, userId,
             </div>
 
             <div className="space-y-2">
-              <Label>Content Pillar</Label>
+              <Label>Content Pillar (Optional)</Label>
               <Select 
-                value={formData.pillar_id} 
-                onValueChange={(v) => setFormData(prev => ({ ...prev, pillar_id: v }))}
+                value={formData.pillar_id || 'none'} 
+                onValueChange={(v) => setFormData(prev => ({ ...prev, pillar_id: v === 'none' ? '' : v }))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a pillar (optional)" />
+                  <SelectValue placeholder="Select a pillar" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No pillar</SelectItem>
+                  <SelectItem value="none">No pillar</SelectItem>
                   {pillars.map((pillar) => (
                     <SelectItem key={pillar.id} value={pillar.id}>
                       <div className="flex items-center gap-2">
