@@ -27,7 +27,7 @@ import { useLanguage } from '@/lib/i18n'
 import { LanguageSwitcher } from '@/components/language-switcher'
 
 interface NavItem {
-  titleKey: 'dashboard' | 'ideas' | 'inspirations' | 'planner' | 'production' | 'crm' | 'brands' | 'deals' | 'emails' | 'revenue' | 'analytics' | 'settings'
+  titleKey: 'dashboard' | 'ideas' | 'inspirations' | 'planner' | 'production' | 'collab' | 'brands' | 'deals' | 'emails' | 'revenue' | 'analytics' | 'settings'
   href: string
   icon: React.ElementType
   badge?: string | number
@@ -38,11 +38,11 @@ const mainNavItems: NavItem[] = [
   { titleKey: 'inspirations', href: '/inspirations', icon: Sparkles },
   { titleKey: 'ideas', href: '/ideas', icon: Lightbulb },
   { titleKey: 'planner', href: '/planner', icon: Calendar },
-  { titleKey: 'production', href: '/production/filming-day', icon: Video },
+  { titleKey: 'production', href: '/production', icon: Video },
 ]
 
 const businessNavItems: NavItem[] = [
-  { titleKey: 'crm', href: '/crm', icon: Building2 },
+  { titleKey: 'collab', href: '/collab', icon: Building2 },
   { titleKey: 'emails', href: '/emails', icon: Mail },
   { titleKey: 'revenue', href: '/revenue', icon: DollarSign },
 ]

@@ -73,7 +73,7 @@ type Deal = Tables<'deals'> & {
 
 type DealStatus = 'lead' | 'contacted' | 'negotiating' | 'proposal_sent' | 'accepted' | 'in_progress' | 'delivered' | 'invoiced' | 'paid' | 'completed' | 'lost' | 'cancelled'
 
-interface CRMContentProps {
+interface CollabContentProps {
   brands: Brand[]
   deals: Deal[]
   userId: string
@@ -88,7 +88,7 @@ const dealStatusConfig: Record<string, {
   lead: { label: 'Lead', icon: Users, color: 'text-gray-600', bgColor: 'bg-gray-100 dark:bg-gray-800' },
   contacted: { label: 'Contacted', icon: Send, color: 'text-blue-600', bgColor: 'bg-blue-100 dark:bg-blue-900/30' },
   negotiating: { label: 'Negotiating', icon: Handshake, color: 'text-yellow-600', bgColor: 'bg-yellow-100 dark:bg-yellow-900/30' },
-  proposal_sent: { label: 'Proposal Sent', icon: FileText, color: 'text-purple-600', bgColor: 'bg-purple-100 dark:bg-purple-900/30' },
+  proposal_sent: { label: 'Proposal Sent', icon: FileText, color: 'text-brand-600', bgColor: 'bg-brand-100 dark:bg-brand-900/30' },
   accepted: { label: 'Accepted', icon: CheckCircle2, color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/30' },
   completed: { label: 'Completed', icon: CheckCircle2, color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/30' },
   lost: { label: 'Lost', icon: XCircle, color: 'text-red-600', bgColor: 'bg-red-100 dark:bg-red-900/30' },
@@ -96,11 +96,11 @@ const dealStatusConfig: Record<string, {
 
 const pipelineStages: DealStatus[] = ['lead', 'contacted', 'negotiating', 'proposal_sent', 'accepted', 'completed']
 
-export function CRMContent({ 
+export function CollabContent({ 
   brands: initialBrands, 
   deals: initialDeals,
   userId 
-}: CRMContentProps) {
+}: CollabContentProps) {
   const [brands, setBrands] = useState(initialBrands)
   const [deals, setDeals] = useState(initialDeals)
   const [activeTab, setActiveTab] = useState('pipeline')
@@ -440,17 +440,22 @@ export function CRMContent({
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">CRM</h1>
+          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
+              <Handshake className="h-4 w-4 text-brand-600" />
+            </div>
+            Collaborations
+          </h1>
           <p className="text-muted-foreground mt-1">
             Gérez vos partenariats et opportunités
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => openBrandDialog()}>
+          <Button variant="outline" onClick={() => openBrandDialog()} className="border-brand-200 hover:bg-brand-50 dark:border-brand-800">
             <Building2 className="h-4 w-4 mr-2" />
             Nouvelle marque
           </Button>
-          <Button onClick={() => openDealDialog()}>
+          <Button onClick={() => openDealDialog()} className="bg-brand-600 hover:bg-brand-700">
             <Plus className="h-4 w-4 mr-2" />
             Nouveau deal
           </Button>

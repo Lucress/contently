@@ -114,7 +114,7 @@ function LoginForm() {
       <Button
         type="button"
         variant="outline"
-        className="w-full h-11 mb-6"
+        className="w-full h-11 mb-6 border-brand-200 hover:bg-brand-50 dark:border-brand-800 dark:hover:bg-brand-900/30"
         onClick={handleGoogleSignIn}
         disabled={isGoogleLoading}
       >
@@ -165,7 +165,7 @@ function LoginForm() {
             <Label htmlFor="password" className="text-sm font-medium">Password</Label>
             <Link
               href="/auth/reset-password"
-              className="text-sm text-muted-foreground hover:text-foreground"
+              className="text-sm text-brand-600 hover:text-brand-700"
             >
               Forgot password?
             </Link>
@@ -184,7 +184,7 @@ function LoginForm() {
 
         <Button 
           type="submit" 
-          className="w-full h-11 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100" 
+          className="w-full h-11 bg-brand-600 hover:bg-brand-700 text-white" 
           disabled={isLoading}
         >
           {isLoading ? 'Signing in...' : 'Sign In'}
@@ -193,7 +193,7 @@ function LoginForm() {
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Don't have an account?{' '}
-        <Link href="/auth/signup" className="font-medium text-foreground hover:underline">
+        <Link href="/auth/signup" className="font-medium text-brand-600 hover:text-brand-700">
           Create account
         </Link>
       </p>

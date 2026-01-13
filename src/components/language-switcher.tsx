@@ -15,7 +15,11 @@ const languages: { code: Language; name: string; flag: string }[] = [
   { code: 'fr', name: 'Français', flag: '🇫🇷' },
 ]
 
-export function LanguageSwitcher() {
+interface LanguageSwitcherProps {
+  variant?: 'default' | 'dark'
+}
+
+export function LanguageSwitcher({ variant = 'default' }: LanguageSwitcherProps) {
   const { language, setLanguage } = useLanguage()
 
   const currentLanguage = languages.find((l) => l.code === language)
@@ -27,7 +31,11 @@ export function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className={`gap-2 ${variant === 'dark' ? 'text-zinc-400 hover:text-white hover:bg-zinc-800' : 'w-full justify-start'}`}
+        >
           <Globe className="h-4 w-4" />
           <span>{currentLanguage?.flag} {currentLanguage?.name}</span>
         </Button>

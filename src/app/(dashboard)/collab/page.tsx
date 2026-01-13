@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
-import { CRMContent } from './crm-content'
+import { CollabContent } from './collab-content'
 
-export default async function CRMPage() {
+export default async function CollabPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -28,7 +28,7 @@ export default async function CRMPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <CRMContent 
+    <CollabContent 
       brands={brands || []}
       deals={deals || []}
       userId={user.id}

@@ -122,7 +122,7 @@ export default function SignupPage() {
       <Button
         type="button"
         variant="outline"
-        className="w-full h-11 mb-6"
+        className="w-full h-11 mb-6 border-brand-200 hover:bg-brand-50 dark:border-brand-800 dark:hover:bg-brand-900/30"
         onClick={handleGoogleSignIn}
         disabled={isGoogleLoading}
       >
@@ -212,7 +212,7 @@ export default function SignupPage() {
 
         <Button 
           type="submit" 
-          className="w-full h-11 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100" 
+          className="w-full h-11 bg-brand-600 hover:bg-brand-700 text-white" 
           disabled={isLoading}
         >
           {isLoading ? 'Creating account...' : 'Create Account'}
@@ -221,18 +221,18 @@ export default function SignupPage() {
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Already have an account?{' '}
-        <Link href="/auth/login" className="font-medium text-foreground hover:underline">
+        <Link href="/auth/login" className="font-medium text-brand-600 hover:text-brand-700">
           Sign in
         </Link>
       </p>
 
       <p className="mt-4 text-center text-xs text-muted-foreground">
         By creating an account, you agree to our{' '}
-        <Link href="/terms" className="underline hover:text-foreground">
+        <Link href="/terms" className="underline hover:text-brand-600">
           Terms
         </Link>{' '}
         and{' '}
-        <Link href="/privacy" className="underline hover:text-foreground">
+        <Link href="/privacy" className="underline hover:text-brand-600">
           Privacy Policy
         </Link>
       </p>
