@@ -42,6 +42,7 @@ const businessNavItems: NavItem[] = [
   { titleKey: 'collab', href: '/collab', icon: Handshake },
   { titleKey: 'emails', href: '/emails', icon: Mail },
   { titleKey: 'revenue', href: '/revenue', icon: DollarSign },
+  { titleKey: 'analytics', href: '/analytics', icon: BarChart3 },
 ]
 
 interface SidebarProps {
