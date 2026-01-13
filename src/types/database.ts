@@ -339,6 +339,7 @@ export type Database = {
           status: 'pending' | 'reviewing' | 'approved' | 'converted' | 'archived'
           is_processed: boolean
           converted_to_idea_id: string | null
+          pillar_id: string | null
           created_at: string
           updated_at: string
         }
@@ -355,6 +356,7 @@ export type Database = {
           status?: 'pending' | 'reviewing' | 'approved' | 'converted' | 'archived'
           is_processed?: boolean
           converted_to_idea_id?: string | null
+          pillar_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -371,6 +373,7 @@ export type Database = {
           status?: 'pending' | 'reviewing' | 'approved' | 'converted' | 'archived'
           is_processed?: boolean
           converted_to_idea_id?: string | null
+          pillar_id?: string | null
           created_at?: string
           updated_at?: string
         }

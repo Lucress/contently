@@ -503,9 +503,22 @@ export function ProductionContent({
                 <div className="p-4 border-b bg-muted/30 sticky top-0 z-10 flex items-center justify-between">
                   <div>
                     <h2 className="font-semibold text-lg">{selectedIdea.title}</h2>
-                    <Badge variant="secondary" className={cn("mt-1", statusConfig[selectedIdea.status as IdeaStatus].bgColor, statusConfig[selectedIdea.status as IdeaStatus].color)}>
-                      {statusConfig[selectedIdea.status as IdeaStatus].label}
-                    </Badge>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="secondary" className={cn(statusConfig[selectedIdea.status as IdeaStatus].bgColor, statusConfig[selectedIdea.status as IdeaStatus].color)}>
+                        {statusConfig[selectedIdea.status as IdeaStatus].label}
+                      </Badge>
+                      {selectedIdea.content_pillar && (
+                        <Badge 
+                          variant="secondary"
+                          style={{
+                            backgroundColor: `${selectedIdea.content_pillar.color}20`,
+                            color: selectedIdea.content_pillar.color,
+                          }}
+                        >
+                          {selectedIdea.content_pillar.name}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   <Button size="sm" onClick={handleSaveIdea} disabled={isLoading}>
                     <Save className="h-4 w-4 mr-2" />

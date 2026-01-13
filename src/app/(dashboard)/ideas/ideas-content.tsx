@@ -420,17 +420,8 @@ function IdeaGridCard({ idea, onDelete, router }: { idea: Idea; onDelete: () => 
           )}
         </div>
 
-        {/* Action Buttons - Using onClick handlers */}
+        {/* Action Buttons - Edit and Delete only */}
         <div className="flex gap-2 pt-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex-1"
-            onClick={() => router.push(`/ideas/${idea.id}`)}
-          >
-            <Eye className="h-3.5 w-3.5 mr-1.5" />
-            View
-          </Button>
           <Button 
             variant="outline" 
             size="sm" 
@@ -443,10 +434,11 @@ function IdeaGridCard({ idea, onDelete, router }: { idea: Idea; onDelete: () => 
           <Button 
             variant="outline" 
             size="sm" 
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
             onClick={onDelete}
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+            Delete
           </Button>
         </div>
       </div>
@@ -498,15 +490,8 @@ function IdeaListRow({ idea, onDelete, router }: { idea: Idea; onDelete: () => v
           {status.label}
         </Badge>
 
-        {/* Actions - Using onClick handlers */}
+        {/* Actions - Edit and Delete only */}
         <div className="flex items-center gap-1 shrink-0">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => router.push(`/ideas/${idea.id}`)}
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
           <Button 
             variant="ghost" 
             size="sm"

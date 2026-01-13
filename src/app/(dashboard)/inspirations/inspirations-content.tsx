@@ -58,13 +58,17 @@ import { formatDistanceToNow } from 'date-fns'
 import { enUS } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 
-type Inspiration = Tables<'inspirations'>
+type Inspiration = Tables<'inspirations'> & {
+  content_pillar?: { id: string; name: string; color: string } | null
+}
+type ContentPillar = { id: string; name: string; color: string }
 type InspirationSource = 'manual' | 'email' | 'social' | 'conversation' | 'article' | 'other'
 type InspirationStatus = 'pending' | 'reviewing' | 'approved' | 'converted' | 'archived'
 
 interface InspirationsContentProps {
   inspirations: Inspiration[]
   userId: string
+  pillars: ContentPillar[]
 }
 
 const statusConfig: Record<InspirationStatus, {
@@ -158,7 +162,7 @@ const getThumbnailUrl = (url: string): string | null => {
   }
 }
 
-export function InspirationsContent({ inspirations: initialInspirations, userId }: InspirationsContentProps) {
+export function InspirationsContent({ inspirations: initialInspirations, userId, pillars }: InspirationsContentProps) {
   const [inspirations, setInspirations] = useState<Inspiration[]>(initialInspirations)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterSource, setFilterSource] = useState<string>('all')
@@ -175,6 +179,7 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
     source: 'other' as InspirationSource,
     status: 'pending' as InspirationStatus,
     notes: '',
+    pillar_id: '',
   })
 
   const { toast } = useToast()
@@ -207,6 +212,7 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
       source: 'other',
       status: 'pending',
       notes: '',
+      pillar_id: '',
     })
   }
 
@@ -245,6 +251,7 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
         source: formData.source,
         status: formData.status,
         notes: formData.notes || null,
+        pillar_id: formData.pillar_id || null,
         is_processed: formData.status === 'converted',
       }
       
@@ -253,7 +260,7 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
       const { data, error } = await supabaseMutation
         .from('inspirations')
         .insert(inspirationData)
-        .select()
+        .select('*, content_pillar:content_pillars(id, name, color)')
         .single()
 
       if (error) {
@@ -556,6 +563,25 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
                       </span>
                     </div>
 
+                    {/* Pillar Badge */}
+                    {inspiration.content_pillar && (
+                      <Badge 
+                        variant="secondary" 
+                        className="inline-flex items-center gap-1.5"
+                        style={{ 
+                          backgroundColor: inspiration.content_pillar.color + '20',
+                          color: inspiration.content_pillar.color,
+                          borderColor: inspiration.content_pillar.color + '40'
+                        }}
+                      >
+                        <div 
+                          className="w-2 h-2 rounded-full" 
+                          style={{ backgroundColor: inspiration.content_pillar.color }}
+                        />
+                        {inspiration.content_pillar.name}
+                      </Badge>
+                    )}
+
                     {/* Title */}
                     <h3 className="font-medium line-clamp-1">{inspiration.title}</h3>
 
@@ -688,6 +714,32 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
                 value={formData.notes}
                 onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Content Pillar</Label>
+              <Select 
+                value={formData.pillar_id} 
+                onValueChange={(v) => setFormData(prev => ({ ...prev, pillar_id: v }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a pillar (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No pillar</SelectItem>
+                  {pillars.map((pillar) => (
+                    <SelectItem key={pillar.id} value={pillar.id}>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: pillar.color }}
+                        />
+                        {pillar.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
