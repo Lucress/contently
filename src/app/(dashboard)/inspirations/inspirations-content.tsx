@@ -248,14 +248,20 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
         is_processed: formData.status === 'converted',
       }
       
+      console.log('[Inspirations] Saving with data:', inspirationData)
+      
       const { data, error } = await supabaseMutation
         .from('inspirations')
         .insert(inspirationData)
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('[Inspirations] Save error:', error)
+        throw error
+      }
 
+      console.log('[Inspirations] Save successful:', data)
       setInspirations(prev => [data as Inspiration, ...prev])
       setIsCreateDialogOpen(false)
       resetForm()
@@ -265,10 +271,10 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
         description: 'Your inspiration has been added successfully.',
       })
     } catch (error) {
-      console.error(error)
+      console.error('[Inspirations] Catch block error:', error)
       toast({
         title: 'Error',
-        description: 'Unable to save the inspiration.',
+        description: error instanceof Error ? error.message : 'Unable to save the inspiration.',
         variant: 'destructive',
       })
     } finally {
