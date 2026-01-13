@@ -341,12 +341,14 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
 
   const confirmTransform = () => {
     if (selectedInspiration) {
-      const params = new URLSearchParams({
-        from_inspiration: selectedInspiration.id,
-        notes: selectedInspiration.notes || '',
-        source_url: selectedInspiration.source_url || '',
-        title: selectedInspiration.title || '',
-      })
+      // Build URL with inspiration data to pre-fill the idea form
+      const params = new URLSearchParams()
+      params.set('from_inspiration', selectedInspiration.id)
+      if (selectedInspiration.title) params.set('title', selectedInspiration.title)
+      if (selectedInspiration.notes) params.set('notes', selectedInspiration.notes)
+      if (selectedInspiration.source_url) params.set('source_url', selectedInspiration.source_url)
+      
+      setIsTransformDialogOpen(false)
       router.push(`/ideas/new?${params.toString()}`)
     }
   }

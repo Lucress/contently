@@ -94,6 +94,7 @@ export function NewIdeaForm({
 
   // Get data from inspiration if coming from one
   const fromInspiration = searchParams.get('from_inspiration')
+  const initialTitle = searchParams.get('title') || ''
   const initialNotes = searchParams.get('notes') || ''
   const initialSourceUrl = searchParams.get('source_url') || ''
 
@@ -102,7 +103,7 @@ export function NewIdeaForm({
   
   // Form state - Aligned with actual database schema
   const [formData, setFormData] = useState({
-    title: '',
+    title: initialTitle,
     hook: '',
     description: initialNotes,
     cta: '',
@@ -110,7 +111,7 @@ export function NewIdeaForm({
     category_id: '',
     content_type_id: '',
     filming_setup_id: '',
-    filming_notes: '',
+    filming_notes: initialSourceUrl ? `Source: ${initialSourceUrl}` : '',
     priority: 2, // 1=high, 2=medium, 3=low
     status: 'draft' as IdeaStatus,
     selected_hashtags: [] as string[],
@@ -176,11 +177,15 @@ export function NewIdeaForm({
 
       if (error) throw error
 
-      // If inspiration was used, mark it as processed
-      if (fromInspiration) {
+      // If inspiration was used, mark it as archived and link the idea
+      if (fromInspiration && idea) {
         await supabase
           .from('inspirations')
-          .update({ is_processed: true })
+          .update({ 
+            is_processed: true,
+            status: 'archived',
+            converted_to_idea_id: idea.id
+          })
           .eq('id', fromInspiration)
       }
 
