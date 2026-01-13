@@ -95,7 +95,7 @@ export function Topbar({ user, profile, subscription }: TopbarProps) {
         </DropdownMenu>
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon-sm" className="relative">
+        <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-4 w-4" />
           <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-primary rounded-full" />
         </Button>
@@ -103,7 +103,7 @@ export function Topbar({ user, profile, subscription }: TopbarProps) {
         {/* Theme Toggle */}
         <Button
           variant="ghost"
-          size="icon-sm"
+          size="icon"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         >
           <Sun className="h-4 w-4 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />
@@ -118,7 +118,7 @@ export function Topbar({ user, profile, subscription }: TopbarProps) {
               <Avatar className="h-8 w-8">
                 <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || ''} />
                 <AvatarFallback className="bg-muted text-muted-foreground text-xs">
-                  {getInitials(profile?.full_name)}
+                  {getInitials(profile?.full_name || 'User')}
                 </AvatarFallback>
               </Avatar>
             </Button>

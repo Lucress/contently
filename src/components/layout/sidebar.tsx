@@ -167,7 +167,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         {!isCollapsed && <LanguageSwitcher />}
         <Button
           variant="ghost"
-          size="icon-sm"
+          size="sm"
           onClick={onToggle}
           className={cn(
             'w-full',
