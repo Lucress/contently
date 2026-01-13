@@ -3,10 +3,11 @@ import { notFound } from 'next/navigation'
 import { IdeaDetailContent } from '.'
 
 interface IdeaDetailPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function IdeaDetailPage({ params }: IdeaDetailPageProps) {
+  const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -23,7 +24,7 @@ export default async function IdeaDetailPage({ params }: IdeaDetailPageProps) {
       filming_setup:filming_setups(id, name, description),
       inspiration:inspirations(id, source_url, source_platform, notes)
     `)
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('user_id', user.id)
     .single()
 
@@ -35,21 +36,21 @@ export default async function IdeaDetailPage({ params }: IdeaDetailPageProps) {
   const { data: scriptBlocks } = await supabase
     .from('script_blocks')
     .select('*')
-    .eq('idea_id', params.id)
+    .eq('idea_id', id)
     .order('order_index')
 
   // Fetch b-roll items
   const { data: brollItems } = await supabase
     .from('broll_items')
     .select('*')
-    .eq('idea_id', params.id)
+    .eq('idea_id', id)
     .order('order_index')
 
   // Fetch idea hashtags
   const { data: ideaHashtags } = await supabase
     .from('idea_hashtags')
     .select('hashtag_id, hashtags(id, name)')
-    .eq('idea_id', params.id)
+    .eq('idea_id', id)
 
   // Fetch all hashtags for editing
   const { data: allHashtags } = await supabase

@@ -134,19 +134,27 @@ export function DashboardContent({
         </div>
       </motion.div>
 
-      {/* Content Pillars Section */}
-      {contentPillars.length > 0 && (
-        <motion.div variants={item}>
-          <Card className="border-brand-200 dark:border-brand-800">
-            <CardHeader className="pb-3">
+      {/* Content Pillars Section - Creator Identity */}
+      <motion.div variants={item}>
+        <Card className="border-brand-200 dark:border-brand-800">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <div className="h-8 w-8 rounded-lg bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
                   <Layers className="h-4 w-4 text-brand-600" />
                 </div>
-                {t.settings.contentPillars}
+                {language === 'fr' ? 'Identité de Créateur' : 'Creator Identity'}
               </CardTitle>
-            </CardHeader>
-            <CardContent>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/settings">
+                  {language === 'fr' ? 'Gérer' : 'Manage'}
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Link>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {contentPillars.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {contentPillars.map((pillar) => (
                   <div
@@ -197,10 +205,30 @@ export function DashboardContent({
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
+            ) : (
+              <div className="text-center py-8">
+                <div className="h-16 w-16 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center mx-auto mb-4">
+                  <Layers className="h-8 w-8 text-brand-400" />
+                </div>
+                <h3 className="font-semibold mb-2">
+                  {language === 'fr' ? 'Définissez votre identité de créateur' : 'Define your creator identity'}
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
+                  {language === 'fr' 
+                    ? 'Créez vos piliers de contenu et vos hashtags favoris pour mieux organiser vos idées et optimiser votre présence sur les réseaux sociaux.'
+                    : 'Create your content pillars and favorite hashtags to better organize your ideas and optimize your social media presence.'}
+                </p>
+                <Button asChild className="bg-brand-600 hover:bg-brand-700">
+                  <Link href="/settings">
+                    <Plus className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Configurer mon identité' : 'Set up my identity'}
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Stats Cards */}
       <motion.div variants={item} className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

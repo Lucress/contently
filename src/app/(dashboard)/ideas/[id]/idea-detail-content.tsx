@@ -79,7 +79,7 @@ type ScriptBlock = Tables<'script_blocks'>
 type BrollItem = Tables<'broll_items'>
 type Hashtag = Tables<'hashtags'>
 
-type IdeaStatus = 'draft' | 'scripted' | 'planned' | 'filmed' | 'edited' | 'published' | 'archived'
+type IdeaStatus = 'draft' | 'scripted' | 'planned' | 'to_film' | 'filmed' | 'editing' | 'scheduled' | 'published' | 'archived'
 
 interface IdeaDetailContentProps {
   idea: Idea
@@ -99,9 +99,11 @@ const statusConfig: Record<IdeaStatus, {
 }> = {
   draft: { label: 'Draft', icon: FileEdit, color: 'text-gray-600', bgColor: 'bg-gray-100 dark:bg-gray-800', next: 'scripted' },
   scripted: { label: 'Scripted', icon: Edit, color: 'text-blue-600', bgColor: 'bg-blue-100 dark:bg-blue-900/30', next: 'planned' },
-  planned: { label: 'Planned', icon: Calendar, color: 'text-purple-600', bgColor: 'bg-purple-100 dark:bg-purple-900/30', next: 'filmed' },
-  filmed: { label: 'Filmed', icon: Video, color: 'text-orange-600', bgColor: 'bg-orange-100 dark:bg-orange-900/30', next: 'edited' },
-  edited: { label: 'Edited', icon: Play, color: 'text-pink-600', bgColor: 'bg-pink-100 dark:bg-pink-900/30', next: 'published' },
+  planned: { label: 'Planned', icon: Calendar, color: 'text-purple-600', bgColor: 'bg-purple-100 dark:bg-purple-900/30', next: 'to_film' },
+  to_film: { label: 'To Film', icon: Video, color: 'text-yellow-600', bgColor: 'bg-yellow-100 dark:bg-yellow-900/30', next: 'filmed' },
+  filmed: { label: 'Filmed', icon: Video, color: 'text-orange-600', bgColor: 'bg-orange-100 dark:bg-orange-900/30', next: 'editing' },
+  editing: { label: 'Editing', icon: Play, color: 'text-pink-600', bgColor: 'bg-pink-100 dark:bg-pink-900/30', next: 'scheduled' },
+  scheduled: { label: 'Scheduled', icon: Clock, color: 'text-indigo-600', bgColor: 'bg-indigo-100 dark:bg-indigo-900/30', next: 'published' },
   published: { label: 'Published', icon: Send, color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/30' },
   archived: { label: 'Archived', icon: Archive, color: 'text-gray-500', bgColor: 'bg-gray-100 dark:bg-gray-800' },
 }
@@ -399,13 +401,7 @@ export function IdeaDetailContent({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link href={`/ideas/${idea.id}/edit`}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Modifier
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/planner?schedule=${idea.id}`}>
+                <Link href="/planner">
                   <Calendar className="h-4 w-4 mr-2" />
                   Planifier
                 </Link>
