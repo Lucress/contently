@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
   Lightbulb, 
@@ -106,6 +107,7 @@ export function IdeasContent({
   const [deleteIdea, setDeleteIdea] = useState<Idea | null>(null)
 
   const { toast } = useToast()
+  const router = useRouter()
   const supabase = createClient()
 
   // Filter and sort ideas
@@ -319,6 +321,7 @@ export function IdeasContent({
               key={idea.id} 
               idea={idea} 
               onDelete={() => setDeleteIdea(idea)}
+              router={router}
             />
           ))}
         </div>
@@ -329,6 +332,7 @@ export function IdeasContent({
               key={idea.id} 
               idea={idea} 
               onDelete={() => setDeleteIdea(idea)}
+              router={router}
             />
           ))}
         </div>
@@ -359,7 +363,7 @@ export function IdeasContent({
 }
 
 // Grid Card Component
-function IdeaGridCard({ idea, onDelete }: { idea: Idea; onDelete: () => void }) {
+function IdeaGridCard({ idea, onDelete, router }: { idea: Idea; onDelete: () => void; router: ReturnType<typeof useRouter> }) {
   const status = statusConfig[idea.status as IdeaStatus] || statusConfig.draft
   const StatusIcon = status.icon
   const priority = priorityConfig[idea.priority as number]
@@ -368,11 +372,11 @@ function IdeaGridCard({ idea, onDelete }: { idea: Idea; onDelete: () => void }) 
     <div className="bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-shadow group">
       <div className="p-4 space-y-3">
         {/* Title - Clickable */}
-        <Link href={`/ideas/${idea.id}`} className="block">
+        <button onClick={() => router.push(`/ideas/${idea.id}`)} className="block text-left w-full">
           <h3 className="font-medium line-clamp-2 group-hover:text-primary transition-colors">
             {idea.title}
           </h3>
-        </Link>
+        </button>
 
         {/* Hook */}
         {idea.hook && (
@@ -416,19 +420,25 @@ function IdeaGridCard({ idea, onDelete }: { idea: Idea; onDelete: () => void }) 
           )}
         </div>
 
-        {/* Action Buttons - Using Button asChild with Link */}
+        {/* Action Buttons - Using onClick handlers */}
         <div className="flex gap-2 pt-2">
-          <Button variant="outline" size="sm" className="flex-1" asChild>
-            <Link href={`/ideas/${idea.id}`}>
-              <Eye className="h-3.5 w-3.5 mr-1.5" />
-              View
-            </Link>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex-1"
+            onClick={() => router.push(`/ideas/${idea.id}`)}
+          >
+            <Eye className="h-3.5 w-3.5 mr-1.5" />
+            View
           </Button>
-          <Button variant="outline" size="sm" className="flex-1" asChild>
-            <Link href={`/production?id=${idea.id}`}>
-              <Pencil className="h-3.5 w-3.5 mr-1.5" />
-              Edit
-            </Link>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex-1"
+            onClick={() => router.push(`/production?id=${idea.id}`)}
+          >
+            <Pencil className="h-3.5 w-3.5 mr-1.5" />
+            Edit
           </Button>
           <Button 
             variant="outline" 
@@ -445,7 +455,7 @@ function IdeaGridCard({ idea, onDelete }: { idea: Idea; onDelete: () => void }) 
 }
 
 // List Row Component
-function IdeaListRow({ idea, onDelete }: { idea: Idea; onDelete: () => void }) {
+function IdeaListRow({ idea, onDelete, router }: { idea: Idea; onDelete: () => void; router: ReturnType<typeof useRouter> }) {
   const status = statusConfig[idea.status as IdeaStatus] || statusConfig.draft
   const StatusIcon = status.icon
   const priority = priorityConfig[idea.priority as number]
@@ -460,9 +470,9 @@ function IdeaListRow({ idea, onDelete }: { idea: Idea; onDelete: () => void }) {
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <Link href={`/ideas/${idea.id}`} className="hover:text-primary transition-colors">
+          <button onClick={() => router.push(`/ideas/${idea.id}`)} className="hover:text-primary transition-colors text-left">
             <h3 className="font-medium truncate">{idea.title}</h3>
-          </Link>
+          </button>
           <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
             {idea.content_pillar && (
               <span style={{ color: idea.content_pillar.color }}>
@@ -488,17 +498,21 @@ function IdeaListRow({ idea, onDelete }: { idea: Idea; onDelete: () => void }) {
           {status.label}
         </Badge>
 
-        {/* Actions - Using Button asChild with Link */}
+        {/* Actions - Using onClick handlers */}
         <div className="flex items-center gap-1 shrink-0">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href={`/ideas/${idea.id}`}>
-              <Eye className="h-4 w-4" />
-            </Link>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => router.push(`/ideas/${idea.id}`)}
+          >
+            <Eye className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href={`/production?id=${idea.id}`}>
-              <Pencil className="h-4 w-4" />
-            </Link>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => router.push(`/production?id=${idea.id}`)}
+          >
+            <Pencil className="h-4 w-4" />
           </Button>
           <Button 
             variant="ghost" 
