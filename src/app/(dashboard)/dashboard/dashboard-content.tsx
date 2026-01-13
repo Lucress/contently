@@ -17,6 +17,8 @@ import {
   Copy,
   Hash,
   Layers,
+  FileVideo,
+  Settings,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -31,8 +33,24 @@ interface ContentPillar {
   id: string
   name: string
   description: string | null
-  color: string | null
-  hashtags?: string[]
+  color: string
+  icon: string
+  ideaCount: number
+}
+
+interface Hashtag {
+  id: string
+  tag: string
+  usage_count: number
+  hashtag_groups: { id: string; name: string; color: string } | null
+}
+
+interface ContentType {
+  id: string
+  name: string
+  description: string | null
+  icon: string
+  color: string
 }
 
 interface DashboardContentProps {
@@ -53,6 +71,8 @@ interface DashboardContentProps {
   tasks: Tables<'tasks'>[]
   ideasByStatus: { status: string; count: number; color: string }[]
   contentPillars?: ContentPillar[]
+  hashtags?: Hashtag[]
+  contentTypes?: ContentType[]
 }
 
 const container = {
@@ -79,6 +99,8 @@ export function DashboardContent({
   tasks,
   ideasByStatus,
   contentPillars = [],
+  hashtags = [],
+  contentTypes = [],
 }: DashboardContentProps) {
   const { t, language } = useLanguage()
   const { toast } = useToast()
@@ -92,12 +114,21 @@ export function DashboardContent({
 
   const firstName = profile?.full_name?.split(' ')[0] || (language === 'fr' ? 'Créateur' : 'Creator')
 
-  const copyHashtags = (hashtags: string[]) => {
-    const text = hashtags.join(' ')
+  const copyHashtags = (tags: string[]) => {
+    const text = tags.map(t => `#${t}`).join(' ')
     navigator.clipboard.writeText(text)
     toast({
       title: language === 'fr' ? 'Hashtags copiés!' : 'Hashtags copied!',
       description: language === 'fr' ? 'Les hashtags ont été copiés dans le presse-papiers.' : 'Hashtags have been copied to clipboard.',
+    })
+  }
+
+  const copyAllHashtags = () => {
+    const text = hashtags.map(h => `#${h.tag}`).join(' ')
+    navigator.clipboard.writeText(text)
+    toast({
+      title: language === 'fr' ? 'Hashtags copiés!' : 'Hashtags copied!',
+      description: language === 'fr' ? `${hashtags.length} hashtags copiés.` : `${hashtags.length} hashtags copied.`,
     })
   }
 
@@ -134,7 +165,7 @@ export function DashboardContent({
         </div>
       </motion.div>
 
-      {/* Content Pillars Section - Creator Identity */}
+      {/* Content Pillars Section */}
       <motion.div variants={item}>
         <Card className="border-brand-200 dark:border-brand-800">
           <CardHeader className="pb-3">
@@ -143,12 +174,12 @@ export function DashboardContent({
                 <div className="h-8 w-8 rounded-lg bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
                   <Layers className="h-4 w-4 text-brand-600" />
                 </div>
-                {language === 'fr' ? 'Identité de Créateur' : 'Creator Identity'}
+                {language === 'fr' ? 'Piliers de Contenu' : 'Content Pillars'}
               </CardTitle>
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/settings">
+                  <Settings className="w-4 h-4 mr-1" />
                   {language === 'fr' ? 'Gérer' : 'Manage'}
-                  <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </Button>
             </div>
@@ -157,71 +188,146 @@ export function DashboardContent({
             {contentPillars.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {contentPillars.map((pillar) => (
-                  <div
+                  <Link
                     key={pillar.id}
-                    className="p-4 rounded-xl border bg-card hover:shadow-soft transition-all"
-                    style={{ borderLeftColor: pillar.color || '#8b5cf6', borderLeftWidth: '4px' }}
+                    href={`/ideas?pillar=${pillar.id}`}
+                    className="block p-4 rounded-xl border bg-card hover:shadow-soft hover:border-brand-300 dark:hover:border-brand-700 transition-all"
+                    style={{ borderLeftColor: pillar.color, borderLeftWidth: '4px' }}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-semibold text-sm">{pillar.name}</h3>
-                      <div
-                        className="h-3 w-3 rounded-full"
-                        style={{ backgroundColor: pillar.color || '#8b5cf6' }}
-                      />
+                      <Badge variant="secondary" className="text-xs">
+                        {pillar.ideaCount} {language === 'fr' ? 'idées' : 'ideas'}
+                      </Badge>
                     </div>
                     {pillar.description && (
-                      <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                      <p className="text-xs text-muted-foreground line-clamp-2">
                         {pillar.description}
                       </p>
                     )}
-                    {pillar.hashtags && pillar.hashtags.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Hash className="h-3 w-3" />
-                          {language === 'fr' ? 'Top hashtags' : 'Top hashtags'}
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {pillar.hashtags.slice(0, 5).map((tag, idx) => (
-                            <Badge
-                              key={idx}
-                              variant="secondary"
-                              className="text-2xs font-normal"
-                            >
-                              #{tag}
-                            </Badge>
-                          ))}
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="w-full h-7 text-xs hover:bg-brand-50 dark:hover:bg-brand-900/30"
-                          onClick={() => copyHashtags(pillar.hashtags || [])}
-                        >
-                          <Copy className="h-3 w-3 mr-1" />
-                          {language === 'fr' ? 'Copier les hashtags' : 'Copy hashtags'}
-                        </Button>
-                      </div>
-                    )}
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <Layers className="h-10 w-10 text-brand-300 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground mb-3">
+                  {language === 'fr' 
+                    ? 'Créez des piliers pour organiser vos idées de contenu'
+                    : 'Create pillars to organize your content ideas'}
+                </p>
+                <Button variant="outline" size="sm" asChild className="border-brand-200 hover:bg-brand-50">
+                  <Link href="/settings">
+                    <Plus className="w-4 h-4 mr-1" />
+                    {language === 'fr' ? 'Créer un pilier' : 'Create pillar'}
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Hashtags & Content Types Row */}
+      <motion.div variants={item} className="grid gap-6 md:grid-cols-2">
+        {/* Favorite Hashtags */}
+        <Card className="border-brand-200 dark:border-brand-800">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Hash className="h-4 w-4 text-brand-500" />
+                {language === 'fr' ? 'Hashtags Favoris' : 'Favorite Hashtags'}
+              </CardTitle>
+              {hashtags.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={copyAllHashtags}>
+                  <Copy className="w-3 h-3 mr-1" />
+                  {language === 'fr' ? 'Copier tout' : 'Copy all'}
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {hashtags.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {hashtags.slice(0, 15).map((hashtag) => (
+                  <Badge
+                    key={hashtag.id}
+                    variant="secondary"
+                    className="text-xs font-normal cursor-pointer hover:bg-brand-100 dark:hover:bg-brand-900/30"
+                    style={hashtag.hashtag_groups ? { borderColor: hashtag.hashtag_groups.color, borderWidth: '1px' } : undefined}
+                    onClick={() => copyHashtags([hashtag.tag])}
+                  >
+                    #{hashtag.tag}
+                    <span className="ml-1 text-muted-foreground">({hashtag.usage_count})</span>
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <Hash className="h-8 w-8 text-brand-300 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground mb-2">
+                  {language === 'fr' ? 'Ajoutez vos hashtags favoris' : 'Add your favorite hashtags'}
+                </p>
+                <Button variant="outline" size="sm" asChild className="border-brand-200 hover:bg-brand-50">
+                  <Link href="/settings">
+                    <Plus className="w-4 h-4 mr-1" />
+                    {language === 'fr' ? 'Ajouter' : 'Add'}
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Content Types */}
+        <Card className="border-brand-200 dark:border-brand-800">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <FileVideo className="h-4 w-4 text-brand-500" />
+                {language === 'fr' ? 'Types de Contenu' : 'Content Types'}
+              </CardTitle>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/settings">
+                  <Settings className="w-3 h-3 mr-1" />
+                  {language === 'fr' ? 'Gérer' : 'Manage'}
+                </Link>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {contentTypes.length > 0 ? (
+              <div className="grid gap-2">
+                {contentTypes.slice(0, 5).map((type) => (
+                  <div
+                    key={type.id}
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+                  >
+                    <div
+                      className="h-8 w-8 rounded-lg flex items-center justify-center text-white text-sm"
+                      style={{ backgroundColor: type.color }}
+                    >
+                      {type.icon || '📹'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{type.name}</p>
+                      {type.description && (
+                        <p className="text-xs text-muted-foreground truncate">{type.description}</p>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <div className="h-16 w-16 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center mx-auto mb-4">
-                  <Layers className="h-8 w-8 text-brand-400" />
-                </div>
-                <h3 className="font-semibold mb-2">
-                  {language === 'fr' ? 'Définissez votre identité de créateur' : 'Define your creator identity'}
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
-                  {language === 'fr' 
-                    ? 'Créez vos piliers de contenu et vos hashtags favoris pour mieux organiser vos idées et optimiser votre présence sur les réseaux sociaux.'
-                    : 'Create your content pillars and favorite hashtags to better organize your ideas and optimize your social media presence.'}
+              <div className="text-center py-4">
+                <FileVideo className="h-8 w-8 text-brand-300 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground mb-2">
+                  {language === 'fr' ? 'Définissez vos formats de contenu' : 'Define your content formats'}
                 </p>
-                <Button asChild className="bg-brand-600 hover:bg-brand-700">
+                <Button variant="outline" size="sm" asChild className="border-brand-200 hover:bg-brand-50">
                   <Link href="/settings">
-                    <Plus className="w-4 h-4 mr-2" />
-                    {language === 'fr' ? 'Configurer mon identité' : 'Set up my identity'}
+                    <Plus className="w-4 h-4 mr-1" />
+                    {language === 'fr' ? 'Ajouter' : 'Add'}
                   </Link>
                 </Button>
               </div>

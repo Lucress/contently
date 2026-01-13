@@ -18,7 +18,8 @@ export default async function DashboardPage() {
     { data: tasks },
     { data: revenues },
     { data: contentPillars },
-    { data: hashtagGroups },
+    { data: hashtags },
+    { data: contentTypes },
   ] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).single(),
     supabase.from('ideas').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10),
@@ -26,15 +27,17 @@ export default async function DashboardPage() {
     supabase.from('deals').select('*, brands(name)').eq('user_id', user.id).not('status', 'in', '("completed","lost","cancelled")').order('created_at', { ascending: false }).limit(5),
     supabase.from('tasks').select('*').eq('user_id', user.id).eq('is_completed', false).order('due_date', { ascending: true }).limit(5),
     supabase.from('revenues').select('amount, date, source').eq('user_id', user.id).gte('date', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]),
-    supabase.from('content_pillars').select('*').eq('user_id', user.id).order('created_at', { ascending: true }),
-    supabase.from('hashtag_groups').select('*').eq('user_id', user.id),
+    supabase.from('content_pillars').select('*').eq('user_id', user.id).eq('is_active', true).order('sort_order', { ascending: true }),
+    supabase.from('hashtags').select('*, hashtag_groups(id, name, color)').eq('user_id', user.id).order('usage_count', { ascending: false }).limit(30),
+    supabase.from('content_types').select('*').eq('user_id', user.id).eq('is_active', true).order('sort_order', { ascending: true }),
   ])
 
   // Calculate stats with type assertion
-  const ideasTyped = ideas as { status: string; [key: string]: unknown }[] | null
+  const ideasTyped = ideas as { status: string; pillar_id: string | null; [key: string]: unknown }[] | null
   const revenuesTyped = revenues as { amount: number; date: string; source: string }[] | null
-  const contentPillarsTyped = contentPillars as { id: string; name: string; description: string | null; color: string | null }[] | null
-  const hashtagGroupsTyped = hashtagGroups as { content_pillar_id: string | null; hashtags: string[] }[] | null
+  const contentPillarsTyped = contentPillars as { id: string; name: string; description: string | null; color: string; icon: string }[] | null
+  const hashtagsTyped = hashtags as { id: string; tag: string; usage_count: number; hashtag_groups: { id: string; name: string; color: string } | null }[] | null
+  const contentTypesTyped = contentTypes as { id: string; name: string; description: string | null; icon: string; color: string }[] | null
   
   const stats = {
     totalIdeas: ideasTyped?.length || 0,
@@ -55,14 +58,12 @@ export default async function DashboardPage() {
     { status: 'Published', count: stats.publishedIdeas, color: '#22c55e' },
   ]
 
-  // Map content pillars with their hashtags
-  const pillarsWithHashtags = contentPillarsTyped?.map(pillar => {
-    const pillarHashtags = hashtagGroupsTyped
-      ?.filter((group) => group.content_pillar_id === pillar.id)
-      ?.flatMap((group) => group.hashtags || []) || []
+  // Map content pillars with idea counts
+  const pillarsWithData = contentPillarsTyped?.map(pillar => {
+    const ideasForPillar = ideasTyped?.filter(i => i.pillar_id === pillar.id) || []
     return {
       ...pillar,
-      hashtags: pillarHashtags,
+      ideaCount: ideasForPillar.length,
     }
   }) || []
 
@@ -75,7 +76,9 @@ export default async function DashboardPage() {
       deals={deals || []}
       tasks={tasks || []}
       ideasByStatus={ideasByStatus}
-      contentPillars={pillarsWithHashtags}
+      contentPillars={pillarsWithData}
+      hashtags={hashtagsTyped || []}
+      contentTypes={contentTypesTyped || []}
     />
   )
 }
