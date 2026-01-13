@@ -10,7 +10,6 @@ import {
   Sparkles,
   Calendar,
   Video,
-  Building2,
   Handshake,
   Mail,
   DollarSign,
@@ -42,7 +41,7 @@ const mainNavItems: NavItem[] = [
 ]
 
 const businessNavItems: NavItem[] = [
-  { titleKey: 'collab', href: '/collab', icon: Building2 },
+  { titleKey: 'collab', href: '/collab', icon: Handshake },
   { titleKey: 'emails', href: '/emails', icon: Mail },
   { titleKey: 'revenue', href: '/revenue', icon: DollarSign },
 ]

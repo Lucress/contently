@@ -204,68 +204,76 @@ export function DashboardContent({
 
       {/* Stats Cards */}
       <motion.div variants={item} className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="card-hover border-l-4 border-l-brand-500">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t.dashboard.stats.totalIdeas}
-            </CardTitle>
-            <Lightbulb className="h-4 w-4 text-brand-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.totalIdeas}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats.toFilmIdeas} {t.dashboard.stats.toFilmIdeas.toLowerCase()}
-            </p>
-          </CardContent>
-        </Card>
+        <Link href="/ideas">
+          <Card className="card-hover border-l-4 border-l-brand-500 cursor-pointer hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {t.dashboard.stats.totalIdeas}
+              </CardTitle>
+              <Lightbulb className="h-4 w-4 text-brand-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats.totalIdeas}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {stats.toFilmIdeas} {t.dashboard.stats.toFilmIdeas.toLowerCase()}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card className="card-hover border-l-4 border-l-brand-400">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t.dashboard.stats.pendingInspirations}
-            </CardTitle>
-            <Sparkles className="h-4 w-4 text-brand-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.pendingInspirations}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {language === 'fr' ? 'En attente de traitement' : 'Awaiting processing'}
-            </p>
-          </CardContent>
-        </Card>
+        <Link href="/inspirations">
+          <Card className="card-hover border-l-4 border-l-brand-400 cursor-pointer hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {t.dashboard.stats.pendingInspirations}
+              </CardTitle>
+              <Sparkles className="h-4 w-4 text-brand-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats.pendingInspirations}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {language === 'fr' ? 'En attente de traitement' : 'Awaiting processing'}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card className="card-hover border-l-4 border-l-brand-600">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t.nav.collab}
-            </CardTitle>
-            <Handshake className="h-4 w-4 text-brand-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{stats.activeDeals}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {language === 'fr' ? 'En cours' : 'In progress'}
-            </p>
-          </CardContent>
-        </Card>
+        <Link href="/collab">
+          <Card className="card-hover border-l-4 border-l-brand-600 cursor-pointer hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {t.nav.collab}
+              </CardTitle>
+              <Handshake className="h-4 w-4 text-brand-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{stats.activeDeals}</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {language === 'fr' ? 'En cours' : 'In progress'}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card className="card-hover border-l-4 border-l-green-500">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t.dashboard.stats.monthlyRevenue}
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">
-              {formatCurrency(stats.monthlyRevenue)}
-            </div>
-            <p className="text-xs text-success flex items-center gap-1 mt-1">
-              <TrendingUp className="h-3 w-3" />
-              {t.time.thisMonth}
-            </p>
-          </CardContent>
-        </Card>
+        <Link href="/revenue">
+          <Card className="card-hover border-l-4 border-l-green-500 cursor-pointer hover:shadow-md transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {t.dashboard.stats.monthlyRevenue}
+              </CardTitle>
+              <DollarSign className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">
+                {formatCurrency(stats.monthlyRevenue)}
+              </div>
+              <p className="text-xs text-success flex items-center gap-1 mt-1">
+                <TrendingUp className="h-3 w-3" />
+                {t.time.thisMonth}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
       </motion.div>
 
       {/* Main Content Grid */}

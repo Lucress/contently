@@ -486,7 +486,7 @@ function IdeaCard({ idea, index, onDelete, onStatusChange }: IdeaCardProps) {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href={`/ideas/${idea.id}/edit`}>
+                    <Link href={`/ideas/${idea.id}`}>
                       <Edit className="h-4 w-4 mr-2" />
                       Edit
                     </Link>
@@ -636,7 +636,7 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={`/ideas/${idea.id}/edit`}>
+                <Link href={`/ideas/${idea.id}`}>
                   <Edit className="h-4 w-4 mr-2" />
                   Modifier
                 </Link>
