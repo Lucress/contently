@@ -448,7 +448,14 @@ function IdeaCard({ idea, index, onDelete, onStatusChange }: IdeaCardProps) {
   const status = statusConfig[idea.status as IdeaStatus]
   const StatusIcon = status.icon
   const priority = priorityConfig[idea.priority]
-  const router = useRouter()
+
+  const handleViewClick = () => {
+    window.location.href = `/ideas/${idea.id}`
+  }
+
+  const handleDeleteClick = () => {
+    onDelete(idea)
+  }
 
   return (
     <motion.div
@@ -462,46 +469,38 @@ function IdeaCard({ idea, index, onDelete, onStatusChange }: IdeaCardProps) {
       <div className="p-4 space-y-3">
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0 cursor-pointer" onClick={() => router.push(`/ideas/${idea.id}`)}>
-            <h3 className="font-medium line-clamp-2 group-hover:text-primary transition-colors">
+          <Link href={`/ideas/${idea.id}`} className="flex-1 min-w-0">
+            <h3 className="font-medium line-clamp-2 group-hover:text-primary transition-colors cursor-pointer">
               {idea.title}
             </h3>
-          </div>
+          </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button 
                 size="icon" 
                 variant="ghost" 
-                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
               >
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={(e) => {
-                e.preventDefault()
-                console.log('[IdeaCard] View clicked, navigating to:', `/ideas/${idea.id}`)
-                router.push(`/ideas/${idea.id}`)
-              }}>
-                <Eye className="h-4 w-4 mr-2" />
-                View
+              <DropdownMenuItem asChild>
+                <Link href={`/ideas/${idea.id}`} className="flex items-center cursor-pointer">
+                  <Eye className="h-4 w-4 mr-2" />
+                  View
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={(e) => {
-                e.preventDefault()
-                console.log('[IdeaCard] Edit clicked, navigating to:', `/ideas/${idea.id}`)
-                router.push(`/ideas/${idea.id}`)
-              }}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
+              <DropdownMenuItem asChild>
+                <Link href={`/ideas/${idea.id}`} className="flex items-center cursor-pointer">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
-                className="text-red-600"
-                onSelect={(e) => {
-                  e.preventDefault()
-                  console.log('[IdeaCard] Delete clicked for idea:', idea.id)
-                  onDelete(idea)
-                }}
+                className="text-red-600 cursor-pointer"
+                onSelect={() => handleDeleteClick()}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
@@ -565,7 +564,10 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
   const status = statusConfig[idea.status as IdeaStatus]
   const StatusIcon = status.icon
   const priority = priorityConfig[idea.priority]
-  const router = useRouter()
+
+  const handleDeleteClick = () => {
+    onDelete(idea)
+  }
 
   return (
     <motion.div
@@ -583,8 +585,8 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => router.push(`/ideas/${idea.id}`)}>
-          <h3 className="font-medium truncate hover:underline">{idea.title}</h3>
+        <Link href={`/ideas/${idea.id}`} className="flex-1 min-w-0">
+          <h3 className="font-medium truncate hover:underline cursor-pointer">{idea.title}</h3>
           <div className="flex items-center gap-3 mt-1">
             {idea.content_pillar && (
               <span 
@@ -603,7 +605,7 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
               {formatDistanceToNow(new Date(idea.created_at), { addSuffix: true, locale: enUS })}
             </span>
           </div>
-        </div>
+        </Link>
 
         {/* Priority */}
         {priority && (
@@ -619,13 +621,12 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
             size="sm" 
             variant="ghost" 
             className="hidden sm:inline-flex"
-            onClick={(e) => {
-              e.stopPropagation()
-              router.push(`/ideas/${idea.id}`)
-            }}
+            asChild
           >
-            View
-            <ArrowUpRight className="h-3.5 w-3.5 ml-1" />
+            <Link href={`/ideas/${idea.id}`}>
+              View
+              <ArrowUpRight className="h-3.5 w-3.5 ml-1" />
+            </Link>
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -634,30 +635,22 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={(e) => {
-                e.preventDefault()
-                console.log('[IdeaListItem] View clicked, navigating to:', `/ideas/${idea.id}`)
-                router.push(`/ideas/${idea.id}`)
-              }}>
-                <Eye className="h-4 w-4 mr-2" />
-                View
+              <DropdownMenuItem asChild>
+                <Link href={`/ideas/${idea.id}`} className="flex items-center cursor-pointer">
+                  <Eye className="h-4 w-4 mr-2" />
+                  View
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={(e) => {
-                e.preventDefault()
-                console.log('[IdeaListItem] Edit clicked, navigating to:', `/ideas/${idea.id}`)
-                router.push(`/ideas/${idea.id}`)
-              }}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
+              <DropdownMenuItem asChild>
+                <Link href={`/ideas/${idea.id}`} className="flex items-center cursor-pointer">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
-                className="text-red-600"
-                onSelect={(e) => {
-                  e.preventDefault()
-                  console.log('[IdeaListItem] Delete clicked for idea:', idea.id)
-                  onDelete(idea)
-                }}
+                className="text-red-600 cursor-pointer"
+                onSelect={() => handleDeleteClick()}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
