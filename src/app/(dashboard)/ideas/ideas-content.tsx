@@ -485,17 +485,19 @@ function IdeaCard({ idea, index, onDelete, onStatusChange }: IdeaCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link href={`/ideas/${idea.id}`} className="flex items-center cursor-pointer">
-                  <Eye className="h-4 w-4 mr-2" />
-                  View
-                </Link>
+              <DropdownMenuItem 
+                className="cursor-pointer"
+                onSelect={() => { window.location.href = `/ideas/${idea.id}` }}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                View
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/ideas/${idea.id}`} className="flex items-center cursor-pointer">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </Link>
+              <DropdownMenuItem 
+                className="cursor-pointer"
+                onSelect={() => { window.location.href = `/ideas/${idea.id}` }}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
@@ -635,17 +637,19 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link href={`/ideas/${idea.id}`} className="flex items-center cursor-pointer">
-                  <Eye className="h-4 w-4 mr-2" />
-                  View
-                </Link>
+              <DropdownMenuItem 
+                className="cursor-pointer"
+                onSelect={() => { window.location.href = `/ideas/${idea.id}` }}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                View
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/ideas/${idea.id}`} className="flex items-center cursor-pointer">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </Link>
+              <DropdownMenuItem 
+                className="cursor-pointer"
+                onSelect={() => { window.location.href = `/ideas/${idea.id}` }}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 

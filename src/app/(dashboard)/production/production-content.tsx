@@ -496,11 +496,13 @@ export function ProductionContent({
                     </Badge>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/ideas/${selectedIdea.id}`}>
-                        <Eye className="h-4 w-4 mr-2" />
-                        View Full
-                      </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => { window.location.href = `/ideas/${selectedIdea.id}` }}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Full
                     </Button>
                     <Button size="sm" onClick={handleSaveIdea} disabled={isLoading}>
                       <Save className="h-4 w-4 mr-2" />
