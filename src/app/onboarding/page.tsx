@@ -1,53 +1,37 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/use-toast'
-import { createClient } from '@/lib/supabase/client'
-import { ArrowRight, ArrowLeft, Sparkles, Target, Users, Zap } from 'lucide-react'
-
-const CONTENT_TYPES = [
-  { id: 'blog', name: 'Blog Articles', icon: '📝' },
-  { id: 'social', name: 'Social Media', icon: '📱' },
-  { id: 'newsletter', name: 'Email Newsletter', icon: '✉️' },
-  { id: 'video', name: 'Video Scripts', icon: '🎥' },
-]
-
-const GOALS = [
-  { id: 'grow-audience', name: 'Grow My Audience', icon: Users },
-  { id: 'increase-engagement', name: 'Increase Engagement', icon: Zap },
-  { id: 'drive-sales', name: 'Drive Sales', icon: Target },
-  { id: 'brand-awareness', name: 'Build Brand Awareness', icon: Sparkles },
-]
+import { createUntypedClient } from '@/lib/supabase/client'
+import { ArrowRight, ArrowLeft, Check } from 'lucide-react'
 
 export default function OnboardingPage() {
   const router = useRouter()
   const { toast } = useToast()
-  const supabase = createClient()
+  const supabase = createUntypedClient()
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
+  const [userEmail, setUserEmail] = useState('')
   
   const [formData, setFormData] = useState({
     fullName: '',
-    companyName: '',
-    contentTypes: [] as string[],
-    goals: [] as string[],
-    audienceDescription: '',
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
   })
 
-  const toggleSelection = (field: 'contentTypes' | 'goals', value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field].includes(value)
-        ? prev[field].filter(item => item !== value)
-        : [...prev[field], value]
-    }))
-  }
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.email) {
+        setUserEmail(user.email)
+      }
+    }
+    getUser()
+  }, [supabase])
 
   const handleComplete = async () => {
     setIsLoading(true)
@@ -63,15 +47,11 @@ export default function OnboardingPage() {
         return
       }
 
-      // Update profile with onboarding data
       const { error } = await supabase
         .from('profiles')
         .update({
           full_name: formData.fullName,
-          company_name: formData.companyName,
-          content_types: formData.contentTypes,
-          goals: formData.goals,
-          audience_description: formData.audienceDescription,
+          timezone: formData.timezone,
           onboarding_completed: true,
         })
         .eq('id', user.id)
@@ -79,7 +59,7 @@ export default function OnboardingPage() {
       if (error) throw error
 
       toast({
-        title: 'Welcome to Contently! 🎉',
+        title: 'Welcome to Contently',
         description: 'Your workspace is ready.',
       })
 
@@ -89,7 +69,7 @@ export default function OnboardingPage() {
       console.error('Onboarding error:', error)
       toast({
         title: 'Error',
-        description: 'Failed to complete onboarding',
+        description: 'Failed to complete setup. Please try again.',
         variant: 'destructive',
       })
     } finally {
@@ -98,205 +78,191 @@ export default function OnboardingPage() {
   }
 
   const canProceed = () => {
-    switch (step) {
-      case 1:
-        return formData.fullName.length >= 2
-      case 2:
-        return formData.contentTypes.length > 0
-      case 3:
-        return formData.goals.length > 0
-      default:
-        return true
-    }
+    return formData.fullName.length >= 2
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
-        {/* Progress bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">Step {step} of 3</span>
-            <span className="text-sm font-medium">{Math.round((step / 3) * 100)}%</span>
+    <div className="min-h-screen bg-background flex">
+      {/* Left Panel - Branding */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-zinc-900 to-zinc-800 p-12 flex-col justify-between">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center">
+              <span className="text-zinc-900 font-bold text-xl">C</span>
+            </div>
+            <span className="font-semibold text-xl text-white">Contently</span>
           </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-gradient-to-r from-violet-600 to-indigo-600"
-              initial={{ width: 0 }}
-              animate={{ width: `${(step / 3) * 100}%` }}
-              transition={{ duration: 0.3 }}
-            />
+        </div>
+        
+        <div className="space-y-8">
+          <h1 className="text-4xl font-bold text-white leading-tight">
+            The content platform<br />
+            for modern creators
+          </h1>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 text-zinc-300">
+              <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center">
+                <Check className="h-4 w-4 text-white" />
+              </div>
+              <span>Organize all your content in one place</span>
+            </div>
+            <div className="flex items-center gap-3 text-zinc-300">
+              <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center">
+                <Check className="h-4 w-4 text-white" />
+              </div>
+              <span>Plan and schedule with precision</span>
+            </div>
+            <div className="flex items-center gap-3 text-zinc-300">
+              <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center">
+                <Check className="h-4 w-4 text-white" />
+              </div>
+              <span>Track performance and grow your audience</span>
+            </div>
           </div>
         </div>
 
-        <AnimatePresence mode="wait">
-          {/* Step 1: Personal Info */}
-          {step === 1 && (
-            <motion.div
-              key="step1"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="bg-card p-8 rounded-2xl border shadow-lg"
-            >
-              <div className="mb-6">
-                <h1 className="text-3xl font-bold mb-2">Welcome to Contently! 👋</h1>
-                <p className="text-muted-foreground">Let's get to know you better</p>
-              </div>
+        <p className="text-zinc-500 text-sm">
+          © 2026 Contently. All rights reserved.
+        </p>
+      </div>
 
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="fullName">Full Name *</Label>
-                  <Input
-                    id="fullName"
-                    placeholder="John Doe"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                    className="mt-1.5"
-                  />
-                </div>
+      {/* Right Panel - Form */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-md">
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex items-center gap-3 mb-8">
+            <div className="h-10 w-10 rounded-xl bg-zinc-900 flex items-center justify-center">
+              <span className="text-white font-bold text-xl">C</span>
+            </div>
+            <span className="font-semibold text-xl">Contently</span>
+          </div>
 
-                <div>
-                  <Label htmlFor="companyName">Company Name (Optional)</Label>
-                  <Input
-                    id="companyName"
-                    placeholder="Your Company Inc."
-                    value={formData.companyName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, companyName: e.target.value }))}
-                    className="mt-1.5"
-                  />
-                </div>
-              </div>
+          {/* Progress */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <div className={`h-2 flex-1 rounded-full ${step >= 1 ? 'bg-zinc-900 dark:bg-white' : 'bg-zinc-200 dark:bg-zinc-800'}`} />
+              <div className={`h-2 flex-1 rounded-full ${step >= 2 ? 'bg-zinc-900 dark:bg-white' : 'bg-zinc-200 dark:bg-zinc-800'}`} />
+            </div>
+            <p className="text-sm text-muted-foreground">Step {step} of 2</p>
+          </div>
 
-              <Button
-                onClick={() => setStep(2)}
-                disabled={!canProceed()}
-                className="w-full mt-6 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700"
+          <AnimatePresence mode="wait">
+            {/* Step 1: Personal Info */}
+            {step === 1 && (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
               >
-                Continue
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </motion.div>
-          )}
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold mb-2">Welcome to Contently</h2>
+                  <p className="text-muted-foreground">Let's set up your profile</p>
+                </div>
 
-          {/* Step 2: Content Types */}
-          {step === 2 && (
-            <motion.div
-              key="step2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="bg-card p-8 rounded-2xl border shadow-lg"
-            >
-              <div className="mb-6">
-                <h2 className="text-3xl font-bold mb-2">What content do you create?</h2>
-                <p className="text-muted-foreground">Select all that apply</p>
-              </div>
+                <div className="space-y-5">
+                  <div>
+                    <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                    <Input
+                      id="email"
+                      value={userEmail}
+                      disabled
+                      className="mt-1.5 bg-muted"
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                {CONTENT_TYPES.map((type) => (
-                  <button
-                    key={type.id}
-                    onClick={() => toggleSelection('contentTypes', type.id)}
-                    className={`p-4 rounded-xl border-2 transition-all text-left ${
-                      formData.contentTypes.includes(type.id)
-                        ? 'border-violet-600 bg-violet-50 dark:bg-violet-950/30'
-                        : 'border-border hover:border-violet-300'
-                    }`}
-                  >
-                    <div className="text-3xl mb-2">{type.icon}</div>
-                    <div className="font-medium">{type.name}</div>
-                  </button>
-                ))}
-              </div>
+                  <div>
+                    <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
+                    <Input
+                      id="fullName"
+                      placeholder="Enter your full name"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                      className="mt-1.5"
+                    />
+                  </div>
+                </div>
 
-              <div className="flex gap-3">
                 <Button
-                  onClick={() => setStep(1)}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
-                <Button
-                  onClick={() => setStep(3)}
+                  onClick={() => setStep(2)}
                   disabled={!canProceed()}
-                  className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700"
+                  className="w-full mt-8 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
                 >
                   Continue
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
 
-          {/* Step 3: Goals & Finish */}
-          {step === 3 && (
-            <motion.div
-              key="step3"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="bg-card p-8 rounded-2xl border shadow-lg"
-            >
-              <div className="mb-6">
-                <h2 className="text-3xl font-bold mb-2">What are your goals?</h2>
-                <p className="text-muted-foreground">Select all that apply</p>
-              </div>
+            {/* Step 2: Timezone & Finish */}
+            {step === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold mb-2">Almost there</h2>
+                  <p className="text-muted-foreground">Confirm your preferences</p>
+                </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                {GOALS.map((goal) => (
-                  <button
-                    key={goal.id}
-                    onClick={() => toggleSelection('goals', goal.id)}
-                    className={`p-4 rounded-xl border-2 transition-all text-left ${
-                      formData.goals.includes(goal.id)
-                        ? 'border-violet-600 bg-violet-50 dark:bg-violet-950/30'
-                        : 'border-border hover:border-violet-300'
-                    }`}
+                <div className="space-y-5">
+                  <div>
+                    <Label htmlFor="timezone" className="text-sm font-medium">Timezone</Label>
+                    <select
+                      id="timezone"
+                      value={formData.timezone}
+                      onChange={(e) => setFormData(prev => ({ ...prev, timezone: e.target.value }))}
+                      className="mt-1.5 w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                    >
+                      <option value="America/New_York">Eastern Time (ET)</option>
+                      <option value="America/Chicago">Central Time (CT)</option>
+                      <option value="America/Denver">Mountain Time (MT)</option>
+                      <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                      <option value="Europe/London">London (GMT)</option>
+                      <option value="Europe/Paris">Paris (CET)</option>
+                      <option value="Europe/Berlin">Berlin (CET)</option>
+                      <option value="Asia/Tokyo">Tokyo (JST)</option>
+                      <option value="Asia/Shanghai">Shanghai (CST)</option>
+                      <option value="Australia/Sydney">Sydney (AEST)</option>
+                      <option value="UTC">UTC</option>
+                    </select>
+                  </div>
+
+                  <div className="p-4 rounded-lg bg-muted/50 border">
+                    <h3 className="font-medium mb-2">Your Profile</h3>
+                    <div className="space-y-1 text-sm text-muted-foreground">
+                      <p>Name: {formData.fullName}</p>
+                      <p>Email: {userEmail}</p>
+                      <p>Timezone: {formData.timezone}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-8">
+                  <Button
+                    onClick={() => setStep(1)}
+                    variant="outline"
+                    className="flex-1"
                   >
-                    <goal.icon className={`h-8 w-8 mb-2 ${
-                      formData.goals.includes(goal.id) ? 'text-violet-600' : 'text-muted-foreground'
-                    }`} />
-                    <div className="font-medium">{goal.name}</div>
-                  </button>
-                ))}
-              </div>
-
-              <div className="mb-6">
-                <Label htmlFor="audienceDescription">Tell us about your audience (Optional)</Label>
-                <Textarea
-                  id="audienceDescription"
-                  placeholder="e.g., Small business owners interested in digital marketing"
-                  value={formData.audienceDescription}
-                  onChange={(e) => setFormData(prev => ({ ...prev, audienceDescription: e.target.value }))}
-                  className="mt-1.5"
-                  rows={3}
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  onClick={() => setStep(2)}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
-                <Button
-                  onClick={handleComplete}
-                  disabled={!canProceed() || isLoading}
-                  className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700"
-                >
-                  {isLoading ? 'Setting up...' : 'Complete Setup'}
-                  <Sparkles className="ml-2 h-4 w-4" />
-                </Button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                  </Button>
+                  <Button
+                    onClick={handleComplete}
+                    disabled={isLoading}
+                    className="flex-1 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+                  >
+                    {isLoading ? 'Setting up...' : 'Get Started'}
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   )
