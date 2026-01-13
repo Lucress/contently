@@ -64,7 +64,7 @@ import { Separator } from '@/components/ui/separator'
 import { useToast } from '@/components/ui/use-toast'
 import { Tables } from '@/types/database'
 import { formatDistanceToNow, format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { enUS } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 
 type Idea = Tables<'ideas'> & {
@@ -130,6 +130,11 @@ export function IdeaDetailContent({
   const [isAddScriptDialogOpen, setIsAddScriptDialogOpen] = useState(false)
   const [isAddBrollDialogOpen, setIsAddBrollDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [scriptMode, setScriptMode] = useState<'simple' | 'blocks'>(
+    (idea as any).script_text ? 'simple' : 'blocks'
+  )
+  const [scriptText, setScriptText] = useState((idea as any).script_text || '')
+  const [isSavingScript, setIsSavingScript] = useState(false)
   
   // New block form
   const [newScriptBlock, setNewScriptBlock] = useState({ type: 'hook', content: '', notes: '' })
@@ -247,6 +252,34 @@ export function IdeaDetailContent({
     }
   }
 
+  const handleSaveScriptText = async () => {
+    setIsSavingScript(true)
+    try {
+      const { error } = await supabaseMutation
+        .from('ideas')
+        .update({ script_text: scriptText || null })
+        .eq('id', idea.id)
+
+      if (error) throw error
+
+      setIdea(prev => ({ ...prev, script_text: scriptText } as any))
+      
+      toast({
+        title: 'Script saved',
+        description: 'Your script has been saved.',
+      })
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: 'Error',
+        description: 'Unable to save the script.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSavingScript(false)
+    }
+  }
+
   const handleDeleteScriptBlock = async (blockId: string) => {
     try {
       const { error } = await supabaseMutation
@@ -350,11 +383,11 @@ export function IdeaDetailContent({
   const blockTypeLabels: Record<string, string> = {
     hook: 'Hook',
     intro: 'Introduction',
-    main: 'Contenu principal',
-    point: 'Point clé',
+    main: 'Main Content',
+    point: 'Key Point',
     transition: 'Transition',
     cta: 'Call to Action',
-    outro: 'Conclusion',
+    outro: 'Outro',
   }
 
   return (
@@ -382,7 +415,7 @@ export function IdeaDetailContent({
             </div>
             <h1 className="text-2xl font-semibold tracking-tight">{idea.title}</h1>
             <p className="text-muted-foreground mt-1 text-sm">
-              Créée {formatDistanceToNow(new Date(idea.created_at), { addSuffix: true, locale: fr })}
+              Created {formatDistanceToNow(new Date(idea.created_at), { addSuffix: true, locale: enUS })}
             </p>
           </div>
         </div>
@@ -390,7 +423,7 @@ export function IdeaDetailContent({
         <div className="flex items-center gap-2">
           {status.next && (
             <Button onClick={() => handleStatusChange(status.next!)}>
-              Passer à "{statusConfig[status.next].label}"
+              Move to "{statusConfig[status.next].label}"
             </Button>
           )}
           <DropdownMenu>
@@ -426,7 +459,7 @@ export function IdeaDetailContent({
                 onClick={() => setIsDeleteDialogOpen(true)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Supprimer
+                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -461,7 +494,7 @@ export function IdeaDetailContent({
             )}
           </motion.div>
 
-          {/* Script Blocks */}
+          {/* Script Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -475,7 +508,11 @@ export function IdeaDetailContent({
               <div className="flex items-center gap-3">
                 <FileText className="h-5 w-5 text-primary" />
                 <h2 className="font-medium">Script</h2>
-                <Badge variant="secondary">{scriptBlocks.length} blocs</Badge>
+                {scriptMode === 'blocks' ? (
+                  <Badge variant="secondary">{scriptBlocks.length} blocks</Badge>
+                ) : (
+                  <Badge variant="secondary">{scriptText.length > 0 ? 'Written' : 'Empty'}</Badge>
+                )}
               </div>
               {isScriptExpanded ? (
                 <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -492,57 +529,118 @@ export function IdeaDetailContent({
                   exit={{ height: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="p-4 pt-0 space-y-3">
-                    {scriptBlocks.length === 0 ? (
-                      <p className="text-center text-muted-foreground py-4">
-                        Aucun bloc de script. Commencez à écrire votre script.
-                      </p>
-                    ) : (
-                      scriptBlocks.map((block, index) => (
-                        <div 
-                          key={block.id}
-                          className="flex gap-3 group"
-                        >
-                          <div className="flex flex-col items-center">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium text-primary">
-                              {index + 1}
-                            </div>
-                            {index < scriptBlocks.length - 1 && (
-                              <div className="w-px h-full bg-border mt-2" />
+                  <div className="p-4 pt-0 space-y-4">
+                    {/* Script Mode Tabs */}
+                    <div className="flex gap-2 p-1 bg-muted rounded-lg">
+                      <button
+                        onClick={() => setScriptMode('simple')}
+                        className={cn(
+                          "flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                          scriptMode === 'simple' 
+                            ? "bg-background shadow-sm text-foreground" 
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        Simple Script
+                      </button>
+                      <button
+                        onClick={() => setScriptMode('blocks')}
+                        className={cn(
+                          "flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                          scriptMode === 'blocks' 
+                            ? "bg-background shadow-sm text-foreground" 
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        Script Blocks
+                      </button>
+                    </div>
+
+                    {scriptMode === 'simple' ? (
+                      /* Simple Script Mode */
+                      <div className="space-y-3">
+                        <Textarea
+                          placeholder="Write your full script here... Include your hook, main points, call to action, etc."
+                          rows={12}
+                          value={scriptText}
+                          onChange={(e) => setScriptText(e.target.value)}
+                          className="resize-none font-mono text-sm"
+                        />
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">
+                            {scriptText.length} characters
+                          </span>
+                          <Button 
+                            onClick={handleSaveScriptText}
+                            disabled={isSavingScript}
+                            className="gap-2"
+                          >
+                            {isSavingScript ? (
+                              <>Saving...</>
+                            ) : (
+                              <>
+                                <CheckCircle2 className="h-4 w-4" />
+                                Save Script
+                              </>
                             )}
-                          </div>
-                          <div className="flex-1 bg-muted/30 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <Badge variant="outline" className="text-xs">
-                                {blockTypeLabels[block.block_type] || block.block_type}
-                              </Badge>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={() => handleDeleteScriptBlock(block.id)}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                            <p className="whitespace-pre-wrap">{block.content}</p>
-                            {block.notes && (
-                              <p className="text-sm text-muted-foreground mt-2 italic">
-                                Note: {block.notes}
-                              </p>
-                            )}
-                          </div>
+                          </Button>
                         </div>
-                      ))
+                      </div>
+                    ) : (
+                      /* Script Blocks Mode */
+                      <div className="space-y-3">
+                        {scriptBlocks.length === 0 ? (
+                          <p className="text-center text-muted-foreground py-4">
+                            No script blocks yet. Start writing your script.
+                          </p>
+                        ) : (
+                          scriptBlocks.map((block, index) => (
+                            <div 
+                              key={block.id}
+                              className="flex gap-3 group"
+                            >
+                              <div className="flex flex-col items-center">
+                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium text-primary">
+                                  {index + 1}
+                                </div>
+                                {index < scriptBlocks.length - 1 && (
+                                  <div className="w-px h-full bg-border mt-2" />
+                                )}
+                              </div>
+                              <div className="flex-1 bg-muted/30 rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-2">
+                                  <Badge variant="outline" className="text-xs">
+                                    {blockTypeLabels[block.block_type] || block.block_type}
+                                  </Badge>
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => handleDeleteScriptBlock(block.id)}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                                <p className="whitespace-pre-wrap">{block.content}</p>
+                                {block.notes && (
+                                  <p className="text-sm text-muted-foreground mt-2 italic">
+                                    Note: {block.notes}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          ))
+                        )}
+                        <Button 
+                          variant="outline" 
+                          className="w-full gap-2"
+                          onClick={() => setIsAddScriptDialogOpen(true)}
+                        >
+                          <Plus className="h-4 w-4" />
+                          Add Script Block
+                        </Button>
+                      </div>
                     )}
-                    <Button 
-                      variant="outline" 
-                      className="w-full gap-2"
-                      onClick={() => setIsAddScriptDialogOpen(true)}
-                    >
-                      <Plus className="h-4 w-4" />
-                      Ajouter un bloc
-                    </Button>
                   </div>
                 </motion.div>
               )}
@@ -563,7 +661,7 @@ export function IdeaDetailContent({
               <div className="flex items-center gap-3">
                 <Image className="h-5 w-5 text-primary" />
                 <h2 className="font-medium">B-Roll</h2>
-                <Badge variant="secondary">{brollItems.length} éléments</Badge>
+                <Badge variant="secondary">{brollItems.length} items</Badge>
               </div>
               {isBrollExpanded ? (
                 <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -583,7 +681,7 @@ export function IdeaDetailContent({
                   <div className="p-4 pt-0 space-y-2">
                     {brollItems.length === 0 ? (
                       <p className="text-center text-muted-foreground py-4">
-                        Aucun élément B-roll. Listez les plans supplémentaires nécessaires.
+                        No B-roll items yet. List the additional shots needed.
                       </p>
                     ) : (
                       brollItems.map((item) => (
@@ -624,7 +722,7 @@ export function IdeaDetailContent({
                       onClick={() => setIsAddBrollDialogOpen(true)}
                     >
                       <Plus className="h-4 w-4" />
-                      Ajouter un B-roll
+                      Add B-Roll
                     </Button>
                   </div>
                 </motion.div>
@@ -642,13 +740,13 @@ export function IdeaDetailContent({
             transition={{ delay: 0.1 }}
             className="bg-card border rounded-xl p-6 space-y-4"
           >
-            <h3 className="font-medium">Détails</h3>
+            <h3 className="font-medium">Details</h3>
             
             {idea.content_pillar && (
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground flex items-center gap-2">
                   <Tag className="h-4 w-4" />
-                  Pilier
+                  Pillar
                 </span>
                 <Badge 
                   style={{ 
@@ -665,7 +763,7 @@ export function IdeaDetailContent({
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground flex items-center gap-2">
                   <Folder className="h-4 w-4" />
-                  Catégorie
+                  Category
                 </span>
                 <span className="text-sm font-medium">{idea.category.name}</span>
               </div>
@@ -770,11 +868,11 @@ export function IdeaDetailContent({
       <Dialog open={isAddScriptDialogOpen} onOpenChange={setIsAddScriptDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Ajouter un bloc de script</DialogTitle>
+            <DialogTitle>Add Script Block</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Type de bloc</Label>
+              <Label>Block Type</Label>
               <Select 
                 value={newScriptBlock.type} 
                 onValueChange={(v) => setNewScriptBlock(prev => ({ ...prev, type: v }))}
@@ -785,27 +883,27 @@ export function IdeaDetailContent({
                 <SelectContent>
                   <SelectItem value="hook">Hook</SelectItem>
                   <SelectItem value="intro">Introduction</SelectItem>
-                  <SelectItem value="main">Contenu principal</SelectItem>
-                  <SelectItem value="point">Point clé</SelectItem>
+                  <SelectItem value="main">Main Content</SelectItem>
+                  <SelectItem value="point">Key Point</SelectItem>
                   <SelectItem value="transition">Transition</SelectItem>
                   <SelectItem value="cta">Call to Action</SelectItem>
-                  <SelectItem value="outro">Conclusion</SelectItem>
+                  <SelectItem value="outro">Outro</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Contenu</Label>
+              <Label>Content</Label>
               <Textarea
-                placeholder="Écrivez le contenu de ce bloc..."
+                placeholder="Write the content for this block..."
                 rows={4}
                 value={newScriptBlock.content}
                 onChange={(e) => setNewScriptBlock(prev => ({ ...prev, content: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
-              <Label>Notes (optionnel)</Label>
+              <Label>Notes (optional)</Label>
               <Input
-                placeholder="Notes pour le tournage..."
+                placeholder="Notes for filming..."
                 value={newScriptBlock.notes}
                 onChange={(e) => setNewScriptBlock(prev => ({ ...prev, notes: e.target.value }))}
               />
@@ -813,10 +911,10 @@ export function IdeaDetailContent({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddScriptDialogOpen(false)}>
-              Annuler
+              Cancel
             </Button>
             <Button onClick={handleAddScriptBlock}>
-              Ajouter
+              Add
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -826,22 +924,22 @@ export function IdeaDetailContent({
       <Dialog open={isAddBrollDialogOpen} onOpenChange={setIsAddBrollDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Ajouter un B-roll</DialogTitle>
+            <DialogTitle>Add B-Roll</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Description</Label>
               <Textarea
-                placeholder="Décrivez le plan B-roll nécessaire..."
+                placeholder="Describe the B-roll shot needed..."
                 rows={3}
                 value={newBrollItem.description}
                 onChange={(e) => setNewBrollItem(prev => ({ ...prev, description: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
-              <Label>Fichier source (optionnel)</Label>
+              <Label>Source file (optional)</Label>
               <Input
-                placeholder="Chemin ou URL du fichier..."
+                placeholder="File path or URL..."
                 value={newBrollItem.source_file}
                 onChange={(e) => setNewBrollItem(prev => ({ ...prev, source_file: e.target.value }))}
               />
@@ -849,10 +947,10 @@ export function IdeaDetailContent({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddBrollDialogOpen(false)}>
-              Annuler
+              Cancel
             </Button>
             <Button onClick={handleAddBrollItem}>
-              Ajouter
+              Add
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -862,17 +960,17 @@ export function IdeaDetailContent({
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Supprimer l'idée</DialogTitle>
+            <DialogTitle>Delete Idea</DialogTitle>
           </DialogHeader>
           <p className="text-muted-foreground">
-            Êtes-vous sûr de vouloir supprimer cette idée ? Cette action est irréversible.
+            Are you sure you want to delete this idea? This action cannot be undone.
           </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Annuler
+              Cancel
             </Button>
             <Button variant="destructive" onClick={handleDelete}>
-              Supprimer
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>

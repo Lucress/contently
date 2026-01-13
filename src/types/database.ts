@@ -379,6 +379,7 @@ export type Database = {
           title: string
           hook: string | null
           description: string | null
+          script_text: string | null
           pillar_id: string | null
           category_id: string | null
           content_type_id: string | null
@@ -412,6 +413,7 @@ export type Database = {
           title: string
           hook?: string | null
           description?: string | null
+          script_text?: string | null
           pillar_id?: string | null
           category_id?: string | null
           content_type_id?: string | null
@@ -445,6 +447,7 @@ export type Database = {
           title?: string
           hook?: string | null
           description?: string | null
+          script_text?: string | null
           pillar_id?: string | null
           category_id?: string | null
           content_type_id?: string | null

@@ -56,13 +56,53 @@ import { Tables } from '@/types/database'
 import { useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
 import { enUS } from 'date-fns/locale'
+import { cn } from '@/lib/utils'
 
 type Inspiration = Tables<'inspirations'>
 type InspirationSource = 'manual' | 'email' | 'social' | 'conversation' | 'article' | 'other'
+type InspirationStatus = 'pending' | 'reviewing' | 'approved' | 'converted' | 'archived'
 
 interface InspirationsContentProps {
   inspirations: Inspiration[]
   userId: string
+}
+
+const statusConfig: Record<InspirationStatus, {
+  label: string
+  icon: React.ElementType
+  color: string
+  bgColor: string
+}> = {
+  pending: {
+    label: 'Pending',
+    icon: Clock,
+    color: 'text-gray-600',
+    bgColor: 'bg-gray-100 dark:bg-gray-800'
+  },
+  reviewing: {
+    label: 'Reviewing',
+    icon: Sparkles,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100 dark:bg-blue-900/30'
+  },
+  approved: {
+    label: 'Approved',
+    icon: CheckCircle2,
+    color: 'text-green-600',
+    bgColor: 'bg-green-100 dark:bg-green-900/30'
+  },
+  converted: {
+    label: 'Converted',
+    icon: ArrowRight,
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-100 dark:bg-purple-900/30'
+  },
+  archived: {
+    label: 'Archived',
+    icon: XCircle,
+    color: 'text-red-600',
+    bgColor: 'bg-red-100 dark:bg-red-900/30'
+  }
 }
 
 const sourceIcons: Record<string, React.ElementType> = {
@@ -83,11 +123,46 @@ const sourceColors: Record<string, string> = {
   other: 'bg-gray-500',
 }
 
+// Helper to extract platform from URL
+const getPlatformFromUrl = (url: string): { platform: string; icon: React.ElementType; color: string } => {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase()
+    if (hostname.includes('instagram.com')) return { platform: 'Instagram', icon: Instagram, color: 'from-purple-500 to-pink-500' }
+    if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) return { platform: 'YouTube', icon: Youtube, color: 'from-red-500 to-red-600' }
+    if (hostname.includes('twitter.com') || hostname.includes('x.com')) return { platform: 'X/Twitter', icon: Twitter, color: 'from-blue-400 to-blue-500' }
+    if (hostname.includes('tiktok.com')) return { platform: 'TikTok', icon: Video, color: 'from-black to-gray-800' }
+    if (hostname.includes('linkedin.com')) return { platform: 'LinkedIn', icon: Globe, color: 'from-blue-600 to-blue-700' }
+    return { platform: hostname, icon: Globe, color: 'from-gray-500 to-gray-600' }
+  } catch {
+    return { platform: 'Link', icon: Globe, color: 'from-gray-500 to-gray-600' }
+  }
+}
+
+// Helper to get video thumbnail from URL
+const getThumbnailUrl = (url: string): string | null => {
+  try {
+    const urlObj = new URL(url)
+    // YouTube
+    if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be')) {
+      let videoId = ''
+      if (urlObj.hostname.includes('youtu.be')) {
+        videoId = urlObj.pathname.slice(1)
+      } else {
+        videoId = urlObj.searchParams.get('v') || ''
+      }
+      if (videoId) return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
 export function InspirationsContent({ inspirations: initialInspirations, userId }: InspirationsContentProps) {
   const [inspirations, setInspirations] = useState<Inspiration[]>(initialInspirations)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterSource, setFilterSource] = useState<string>('all')
-  const [filterProcessed, setFilterProcessed] = useState<string>('all')
+  const [filterStatus, setFilterStatus] = useState<string>('all')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isTransformDialogOpen, setIsTransformDialogOpen] = useState(false)
   const [selectedInspiration, setSelectedInspiration] = useState<Inspiration | null>(null)
@@ -98,6 +173,7 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
     title: '',
     source_url: '',
     source: 'other' as InspirationSource,
+    status: 'pending' as InspirationStatus,
     notes: '',
   })
 
@@ -113,11 +189,9 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
       insp.source_url?.toLowerCase().includes(searchQuery.toLowerCase())
     
     const matchesSource = filterSource === 'all' || insp.source === filterSource
-    const matchesProcessed = filterProcessed === 'all' || 
-      (filterProcessed === 'processed' && insp.is_processed) ||
-      (filterProcessed === 'unprocessed' && !insp.is_processed)
+    const matchesStatus = filterStatus === 'all' || (insp as any).status === filterStatus
 
-    return matchesSearch && matchesSource && matchesProcessed
+    return matchesSearch && matchesSource && matchesStatus
   })
 
   const stats = {
@@ -131,6 +205,7 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
       title: '',
       source_url: '',
       source: 'other',
+      status: 'pending',
       notes: '',
     })
   }
@@ -168,8 +243,9 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
         title: formData.title || 'Untitled Inspiration',
         source_url: formData.source_url || null,
         source: formData.source,
+        status: formData.status,
         notes: formData.notes || null,
-        is_processed: false,
+        is_processed: formData.status === 'converted',
       }
       
       const { data, error } = await supabaseMutation
@@ -332,19 +408,28 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
             <SelectItem value="other">Other</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={filterProcessed} onValueChange={setFilterProcessed}>
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
           <SelectTrigger className="w-full sm:w-[160px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="unprocessed">Unprocessed</SelectItem>
-            <SelectItem value="processed">Processed</SelectItem>
+            {Object.entries(statusConfig).map(([status, config]) => {
+              const Icon = config.icon
+              return (
+                <SelectItem key={status} value={status}>
+                  <div className="flex items-center gap-2">
+                    <Icon className={cn("h-4 w-4", config.color)} />
+                    {config.label}
+                  </div>
+                </SelectItem>
+              )
+            })}
           </SelectContent>
         </Select>
       </div>
 
-      {/* Inspirations Grid */}
+      {/* Inspirations Gallery */}
       {filteredInspirations.length === 0 ? (
         <motion.div
           initial={{ opacity: 0 }}
@@ -355,22 +440,27 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
             <Lightbulb className="h-8 w-8 text-primary" />
           </div>
           <h3 className="text-lg font-medium mb-2">
-            {searchQuery || filterSource !== 'all' || filterProcessed !== 'all'
+            {searchQuery || filterSource !== 'all' || filterStatus !== 'all'
               ? 'No inspirations found'
               : 'No inspirations yet'}
           </h3>
           <p className="text-muted-foreground max-w-sm">
-            {searchQuery || filterSource !== 'all' || filterProcessed !== 'all'
+            {searchQuery || filterSource !== 'all' || filterStatus !== 'all'
               ? 'Try adjusting your filters.'
               : 'Start collecting inspirations by clicking the button above.'}
           </p>
         </motion.div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           <AnimatePresence mode="popLayout">
             {filteredInspirations.map((inspiration, index) => {
               const SourceIcon = sourceIcons[inspiration.source] || Globe
               const sourceColor = sourceColors[inspiration.source] || 'bg-gray-500'
+              
+              // Get platform info if there's a URL
+              const platformInfo = inspiration.source_url ? getPlatformFromUrl(inspiration.source_url) : null
+              const PlatformIcon = platformInfo?.icon || SourceIcon
+              const thumbnailUrl = inspiration.source_url ? getThumbnailUrl(inspiration.source_url) : null
 
               return (
                 <motion.div
@@ -379,28 +469,77 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="group bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+                  transition={{ delay: index * 0.03 }}
+                  className="group bg-card border rounded-xl overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all"
                 >
-                  {/* Header with source icon */}
-                  <div className="aspect-video bg-gradient-to-br from-muted to-muted/50 relative flex items-center justify-center">
-                    <SourceIcon className="h-12 w-12 text-muted-foreground/30" />
-                    <div className={`absolute top-3 left-3 p-1.5 rounded-lg ${sourceColor} text-white`}>
-                      <SourceIcon className="h-4 w-4" />
-                    </div>
+                  {/* Link Preview / Thumbnail */}
+                  <div className="aspect-video relative overflow-hidden">
+                    {thumbnailUrl ? (
+                      <>
+                        <img 
+                          src={thumbnailUrl} 
+                          alt={inspiration.title || 'Inspiration thumbnail'}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      </>
+                    ) : inspiration.source_url ? (
+                      <div className={cn(
+                        "w-full h-full bg-gradient-to-br flex items-center justify-center",
+                        platformInfo?.color ? platformInfo.color : "from-muted to-muted/50"
+                      )}>
+                        <PlatformIcon className="h-16 w-16 text-white/80" />
+                      </div>
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
+                        <SourceIcon className="h-12 w-12 text-muted-foreground/30" />
+                      </div>
+                    )}
+                    
+                    {/* Platform Badge */}
+                    {platformInfo && (
+                      <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white text-xs font-medium">
+                        <PlatformIcon className="h-3.5 w-3.5" />
+                        {platformInfo.platform}
+                      </div>
+                    )}
+                    
+                    {/* Source Badge (if no URL) */}
+                    {!platformInfo && (
+                      <div className={`absolute top-3 left-3 p-1.5 rounded-lg ${sourceColor} text-white`}>
+                        <SourceIcon className="h-4 w-4" />
+                      </div>
+                    )}
+                    
+                    {/* Open Link Button */}
+                    {inspiration.source_url && (
+                      <a
+                        href={inspiration.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute top-3 right-3 p-2 rounded-full bg-black/50 backdrop-blur-sm text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    )}
                   </div>
 
                   {/* Content */}
                   <div className="p-4 space-y-3">
                     {/* Status & Date */}
                     <div className="flex items-center justify-between">
-                      <Badge variant="secondary" className={inspiration.is_processed ? 'bg-green-500/10 text-green-600' : 'bg-yellow-500/10 text-yellow-600'}>
-                        {inspiration.is_processed ? (
-                          <><CheckCircle2 className="h-3 w-3 mr-1" /> Processed</>
-                        ) : (
-                          <><Clock className="h-3 w-3 mr-1" /> Unprocessed</>
-                        )}
-                      </Badge>
+                      {(() => {
+                        const inspirationStatus = (inspiration as any).status || 'pending'
+                        const config = statusConfig[inspirationStatus as InspirationStatus]
+                        const StatusIcon = config.icon
+                        return (
+                          <Badge variant="secondary" className={config.bgColor}>
+                            <StatusIcon className={cn("h-3 w-3 mr-1", config.color)} />
+                            <span className={config.color}>{config.label}</span>
+                          </Badge>
+                        )
+                      })()}
                       <span className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(inspiration.created_at), {
                           addSuffix: true,
@@ -419,8 +558,8 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
                       </p>
                     )}
 
-                    {/* Source URL */}
-                    {inspiration.source_url && (
+                    {/* Source URL (only show if no thumbnail) */}
+                    {inspiration.source_url && !getThumbnailUrl(inspiration.source_url) && (
                       <a
                         href={inspiration.source_url}
                         target="_blank"
@@ -440,17 +579,18 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
                       </a>
                     )}
 
-                    {/* Actions */}
+                    {/* Move to Idea Button - Prominent */}
+                    <Button
+                      size="sm"
+                      className="w-full gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md"
+                      onClick={() => handleTransformToIdea(inspiration)}
+                    >
+                      <ArrowRight className="h-4 w-4" />
+                      Move to Idea
+                    </Button>
+
+                    {/* Secondary Actions */}
                     <div className="flex items-center gap-2 pt-2 border-t">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 gap-1.5"
-                        onClick={() => handleTransformToIdea(inspiration)}
-                      >
-                        <Sparkles className="h-3.5 w-3.5" />
-                        Transform to Idea
-                      </Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button size="icon" variant="ghost" className="h-8 w-8">
@@ -540,6 +680,35 @@ export function InspirationsContent({ inspirations: initialInspirations, userId 
                 value={formData.notes}
                 onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select 
+                value={formData.status} 
+                onValueChange={(v) => setFormData(prev => ({ ...prev, status: v as InspirationStatus }))}
+              >
+                <SelectTrigger>
+                  {(() => {
+                    const StatusIcon = statusConfig[formData.status].icon
+                    return <StatusIcon className="h-4 w-4 mr-2" />
+                  })()}
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(statusConfig).map(([status, config]) => {
+                    const Icon = config.icon
+                    return (
+                      <SelectItem key={status} value={status}>
+                        <div className="flex items-center gap-2">
+                          <Icon className={cn("h-4 w-4", config.color)} />
+                          {config.label}
+                        </div>
+                      </SelectItem>
+                    )
+                  })}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

@@ -52,7 +52,7 @@ export function Topbar({ user, profile, subscription }: TopbarProps) {
       <div className="flex items-center gap-4 flex-1 max-w-md">
         <div className="relative w-full">
           <Input
-            placeholder="Rechercher..."
+            placeholder="Search..."
             className="pl-10 bg-muted/50 border-0 focus-visible:ring-1"
             icon={<Search className="h-4 w-4" />}
           />
@@ -66,29 +66,29 @@ export function Topbar({ user, profile, subscription }: TopbarProps) {
           <DropdownMenuTrigger asChild>
             <Button size="sm" className="gap-2">
               <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">Créer</span>
+              <span className="hidden sm:inline">Create</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem asChild>
               <Link href="/ideas/new">
-                Nouvelle idée
+                New Idea
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/inspirations/new">
-                Nouvelle inspiration
+              <Link href="/inspirations">
+                New Inspiration
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/brands/new">
-                Nouvelle marque
+              <Link href="/collab?tab=brands&action=new">
+                New Brand Partner
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/deals/new">
-                Nouvelle collaboration
+              <Link href="/collab?tab=deals&action=new">
+                New Deal
               </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -108,7 +108,7 @@ export function Topbar({ user, profile, subscription }: TopbarProps) {
         >
           <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Changer le thème</span>
+          <span className="sr-only">Toggle theme</span>
         </Button>
 
         {/* User Menu */}
@@ -126,13 +126,13 @@ export function Topbar({ user, profile, subscription }: TopbarProps) {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{profile?.full_name || 'Utilisateur'}</p>
+                <p className="text-sm font-medium leading-none">{profile?.full_name || 'User'}</p>
                 <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="justify-between">
-              Plan actuel
+              Current Plan
               <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
                 {planLabel}
               </span>
@@ -141,19 +141,19 @@ export function Topbar({ user, profile, subscription }: TopbarProps) {
             <DropdownMenuItem asChild>
               <Link href="/settings/profile" className="flex items-center">
                 <User className="mr-2 h-4 w-4" />
-                Profil
+                Profile
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="/settings/billing" className="flex items-center">
                 <CreditCard className="mr-2 h-4 w-4" />
-                Abonnement
+                Subscription
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
               <LogOut className="mr-2 h-4 w-4" />
-              Déconnexion
+              Sign Out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

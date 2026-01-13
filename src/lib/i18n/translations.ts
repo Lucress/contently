@@ -250,13 +250,22 @@ export const translations = {
       film: 'Film',
     },
 
-    // Collab (formerly CRM)
+    // Collab (Brand Partnerships & Deals)
     collab: {
       title: 'Collaborations',
-      subtitle: 'Manage your brand partnerships',
-      brands: 'Brands',
+      subtitle: 'Manage brand partnerships and deals',
+      brands: 'Brand Partners',
+      brandsDescription: 'Companies and brands you work with',
       deals: 'Deals',
+      dealsDescription: 'Track your collaboration opportunities',
       contacts: 'Contacts',
+      newBrand: 'New Brand Partner',
+      newDeal: 'New Deal',
+      pipeline: 'Pipeline',
+      noBrands: 'No brand partners yet',
+      noBrandsDescription: 'Add brands you collaborate with or want to pitch to.',
+      noDeals: 'No deals yet',
+      noDealsDescription: 'Start tracking your brand deals and collaborations.',
     },
 
     // Revenue
@@ -641,13 +650,22 @@ export const translations = {
       film: 'Filmer',
     },
 
-    // Collab (formerly CRM)
+    // Collab (Brand Partnerships & Deals)
     collab: {
       title: 'Collaborations',
-      subtitle: 'Gérez vos partenariats avec les marques',
-      brands: 'Marques',
+      subtitle: 'Manage brand partnerships and deals',
+      brands: 'Brand Partners',
+      brandsDescription: 'Companies and brands you work with',
       deals: 'Deals',
+      dealsDescription: 'Track your collaboration opportunities',
       contacts: 'Contacts',
+      newBrand: 'New Brand Partner',
+      newDeal: 'New Deal',
+      pipeline: 'Pipeline',
+      noBrands: 'No brand partners yet',
+      noBrandsDescription: 'Add brands you collaborate with or want to pitch to.',
+      noDeals: 'No deals yet',
+      noDealsDescription: 'Start tracking your brand deals and collaborations.',
     },
 
     // Revenue

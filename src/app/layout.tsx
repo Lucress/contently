@@ -13,11 +13,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL('https://contentlyapp.com'),
   title: {
-    default: 'Contently - Content Operating System for Creators',
+    default: 'Contently - All-in-One Platform for Content Creators & Small Businesses',
     template: '%s | Contently'
   },
-  description: 'The complete platform for content creators. Manage your ideas, plan your content, track your filming, and grow your revenue - all in one place.',
-  keywords: ['content creator', 'content management', 'content planning', 'video production', 'creator tools', 'content calendar', 'social media management', 'YouTube creator', 'content workflow'],
+  description: 'Plan content, write scripts, manage brand deals, track revenue, and handle customer emails — all in one place. Perfect for YouTubers, Instagram creators, TikTokers, and small business owners.',
+  keywords: ['content creator tools', 'video script writer', 'brand deal management', 'content calendar', 'creator revenue tracking', 'small business content', 'social media planner', 'YouTube creator', 'TikTok creator', 'Instagram creator', 'content planning app', 'influencer tools', 'creator CRM', 'sponsorship management'],
   authors: [{ name: 'Contently', url: 'https://contentlyapp.com' }],
   creator: 'Contently',
   publisher: 'Contently',
@@ -26,21 +26,21 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://contentlyapp.com',
     siteName: 'Contently',
-    title: 'Contently - Content Operating System for Creators',
-    description: 'The complete platform for content creators. Manage your ideas, plan your content, track your filming, and grow your revenue.',
+    title: 'Contently - Your Content Business, All in One Place',
+    description: 'Plan content, write scripts, manage brand deals, track revenue, and handle customer emails. Built for content creators and small business owners.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Contently - Content Operating System',
+        alt: 'Contently - All-in-One Platform for Content Creators',
       }
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Contently - Content Operating System for Creators',
-    description: 'The complete platform for content creators.',
+    title: 'Contently - Your Content Business, All in One Place',
+    description: 'Plan content, write scripts, manage brand deals, track revenue. Built for creators.',
     images: ['/og-image.png'],
   },
   robots: {

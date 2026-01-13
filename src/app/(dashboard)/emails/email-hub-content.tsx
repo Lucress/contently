@@ -65,7 +65,7 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/use-toast'
 import { Tables } from '@/types/database'
 import { formatDistanceToNow, format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { enUS } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 
 type EmailAccount = Tables<'email_accounts'>
@@ -173,16 +173,16 @@ export function EmailHubContent({
     await new Promise(resolve => setTimeout(resolve, 1500))
     setIsRefreshing(false)
     toast({
-      title: 'Emails synchronisés',
-      description: 'Votre boîte de réception est à jour.',
+      title: 'Emails synced',
+      description: 'Your inbox is up to date.',
     })
   }
 
   const handleAddAccount = async () => {
     if (!accountForm.email_address) {
       toast({
-        title: 'Erreur',
-        description: 'L\'adresse email est requise.',
+        title: 'Error',
+        description: 'Email address is required.',
         variant: 'destructive',
       })
       return
@@ -233,18 +233,18 @@ export function EmailHubContent({
       if (accountForm.provider === 'gmail') {
         // Redirect to Gmail OAuth
         toast({
-          title: 'Compte ajouté',
-          description: 'Vous allez être redirigé vers Google pour autoriser l\'accès.',
+          title: 'Account added',
+          description: 'You will be redirected to Google to authorize access.',
         })
         // In real implementation: redirect to OAuth flow
       } else {
-        toast({ title: 'Compte IMAP ajouté' })
+        toast({ title: 'IMAP account added' })
       }
     } catch (error) {
       console.error(error)
       toast({
-        title: 'Erreur',
-        description: 'Impossible d\'ajouter le compte.',
+        title: 'Error',
+        description: 'Unable to add account.',
         variant: 'destructive',
       })
     } finally {
@@ -255,8 +255,8 @@ export function EmailHubContent({
   const handleSendEmail = async () => {
     if (!composeForm.to || !composeForm.subject) {
       toast({
-        title: 'Erreur',
-        description: 'Le destinataire et l\'objet sont requis.',
+        title: 'Error',
+        description: 'Recipient and subject are required.',
         variant: 'destructive',
       })
       return
@@ -307,8 +307,8 @@ export function EmailHubContent({
   const handleSaveTemplate = async () => {
     if (!templateForm.name || !templateForm.subject) {
       toast({
-        title: 'Erreur',
-        description: 'Le nom et l\'objet sont requis.',
+        title: 'Error',
+        description: 'Name and subject are required.',
         variant: 'destructive',
       })
       return
@@ -432,10 +432,10 @@ export function EmailHubContent({
           <div>
             <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
               <Mail className="h-6 w-6 text-primary" />
-              Email Hub
+              Inbox
             </h1>
             <p className="text-muted-foreground mt-1">
-              Centralisez vos communications avec les marques
+              Manage collabs, customer emails, and brand partnerships
             </p>
           </div>
           <div className="flex gap-2">
@@ -449,11 +449,11 @@ export function EmailHubContent({
             </Button>
             <Button variant="outline" onClick={() => setIsAccountDialogOpen(true)}>
               <Settings className="h-4 w-4 mr-2" />
-              Comptes
+              Accounts
             </Button>
             <Button onClick={() => setIsComposeDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Composer
+              Compose
             </Button>
           </div>
         </div>
@@ -468,9 +468,9 @@ export function EmailHubContent({
             <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
               <Mail className="h-10 w-10 text-primary" />
             </div>
-            <h3 className="text-lg font-medium mb-2">Connectez votre premier compte email</h3>
+            <h3 className="text-lg font-medium mb-2">Connect your first email account</h3>
             <p className="text-muted-foreground max-w-sm mb-6">
-              Connectez Gmail ou un compte IMAP pour centraliser vos emails avec les marques.
+              Connect Gmail or IMAP to manage collabs, customer inquiries, and brand emails in one place.
             </p>
             <div className="flex gap-3">
               <Button onClick={() => {
@@ -478,14 +478,14 @@ export function EmailHubContent({
                 setIsAccountDialogOpen(true)
               }}>
                 <span className="mr-2">📧</span>
-                Connecter Gmail
+                Connect Gmail
               </Button>
               <Button variant="outline" onClick={() => {
                 setAccountForm(prev => ({ ...prev, provider: 'imap' }))
                 setIsAccountDialogOpen(true)
               }}>
                 <span className="mr-2">✉️</span>
-                Connecter IMAP
+                Connect IMAP
               </Button>
             </div>
           </motion.div>
@@ -496,7 +496,7 @@ export function EmailHubContent({
               {/* Quick Actions */}
               <Button onClick={() => setIsComposeDialogOpen(true)} className="w-full gap-2">
                 <Plus className="h-4 w-4" />
-                Nouveau message
+                New Message
               </Button>
 
               {/* Folders */}
@@ -509,7 +509,7 @@ export function EmailHubContent({
                   )}
                 >
                   <Inbox className="h-4 w-4" />
-                  <span className="flex-1 text-left">Boîte de réception</span>
+                  <span className="flex-1 text-left">Inbox</span>
                   {stats.unread > 0 && (
                     <Badge variant="default" className="h-5 min-w-[20px] justify-center">
                       {stats.unread}
@@ -524,7 +524,7 @@ export function EmailHubContent({
                   )}
                 >
                   <Send className="h-4 w-4" />
-                  <span className="flex-1 text-left">Envoyés</span>
+                  <span className="flex-1 text-left">Sent</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('starred')}
@@ -534,7 +534,7 @@ export function EmailHubContent({
                   )}
                 >
                   <Star className="h-4 w-4" />
-                  <span className="flex-1 text-left">Favoris</span>
+                  <span className="flex-1 text-left">Starred</span>
                   {stats.starred > 0 && (
                     <Badge variant="secondary">{stats.starred}</Badge>
                   )}
@@ -610,7 +610,7 @@ export function EmailHubContent({
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Rechercher..."
+                      placeholder="Search..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10"
@@ -671,7 +671,7 @@ export function EmailHubContent({
                           </p>
                           <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                             <Clock className="h-3 w-3" />
-                            {email.received_at && formatDistanceToNow(new Date(email.received_at), { addSuffix: true, locale: fr })}
+                            {email.received_at && formatDistanceToNow(new Date(email.received_at), { addSuffix: true, locale: enUS })}
                           </div>
                         </button>
                       ))
@@ -1053,24 +1053,24 @@ export function EmailHubContent({
               />
             </div>
             <div className="space-y-2">
-              <Label>Contenu</Label>
+              <Label>Content</Label>
               <Textarea
-                placeholder="Corps de l'email..."
+                placeholder="Email body..."
                 rows={8}
                 value={templateForm.body}
                 onChange={(e) => setTemplateForm(prev => ({ ...prev, body: e.target.value }))}
               />
               <p className="text-xs text-muted-foreground">
-                Vous pouvez utiliser des variables : {'{{nom}}'}, {'{{marque}}'}, {'{{date}}'}
+                You can use variables: {'{{name}}'}, {'{{brand}}'}, {'{{date}}'}
               </p>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsTemplateDialogOpen(false)}>
-              Annuler
+              Cancel
             </Button>
             <Button onClick={handleSaveTemplate} disabled={isLoading}>
-              {isLoading ? 'Sauvegarde...' : 'Sauvegarder'}
+              {isLoading ? 'Saving...' : 'Save'}
             </Button>
           </DialogFooter>
         </DialogContent>

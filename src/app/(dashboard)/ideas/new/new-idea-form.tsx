@@ -20,7 +20,13 @@ import {
   Link as LinkIcon,
   ExternalLink,
   Plus,
-  X
+  X,
+  FileEdit,
+  Edit,
+  Calendar,
+  Play,
+  Send,
+  Archive
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -45,6 +51,24 @@ type Category = Tables<'categories'>
 type ContentType = Tables<'content_types'>
 type Hashtag = Tables<'hashtags'>
 type FilmingSetup = Tables<'filming_setups'>
+
+type IdeaStatus = 'draft' | 'scripted' | 'planned' | 'to_film' | 'filmed' | 'editing' | 'scheduled' | 'published' | 'archived'
+
+const statusConfig: Record<IdeaStatus, { 
+  label: string
+  icon: React.ElementType
+  color: string
+}> = {
+  draft: { label: 'Draft', icon: FileEdit, color: 'text-gray-600' },
+  scripted: { label: 'Scripted', icon: Edit, color: 'text-blue-600' },
+  planned: { label: 'Planned', icon: Calendar, color: 'text-purple-600' },
+  to_film: { label: 'To Film', icon: Video, color: 'text-yellow-600' },
+  filmed: { label: 'Filmed', icon: Video, color: 'text-orange-600' },
+  editing: { label: 'Editing', icon: Play, color: 'text-pink-600' },
+  scheduled: { label: 'Scheduled', icon: Clock, color: 'text-indigo-600' },
+  published: { label: 'Published', icon: Send, color: 'text-green-600' },
+  archived: { label: 'Archived', icon: Archive, color: 'text-gray-500' },
+}
 
 interface NewIdeaFormProps {
   pillars: ContentPillar[]
@@ -88,6 +112,7 @@ export function NewIdeaForm({
     filming_setup_id: '',
     filming_notes: '',
     priority: 2, // 1=high, 2=medium, 3=low
+    status: 'draft' as IdeaStatus,
     selected_hashtags: [] as string[],
     platforms: [] as string[],
   })
@@ -139,7 +164,7 @@ export function NewIdeaForm({
         filming_notes: formData.filming_notes || null,
         priority: formData.priority,
         platforms: formData.platforms.length > 0 ? formData.platforms : null,
-        status: 'draft' as const,
+        status: formData.status,
         inspiration_id: fromInspiration || null,
       }
       
@@ -295,37 +320,68 @@ export function NewIdeaForm({
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Priority</Label>
-                  <Select 
-                    value={formData.priority.toString()} 
-                    onValueChange={(v) => updateField('priority', parseInt(v))}
-                  >
-                    <SelectTrigger>
-                      <Flag className="h-4 w-4 mr-2" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-red-500" />
-                          High
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                          Medium
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-gray-500" />
-                          Low
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Status</Label>
+                    <Select 
+                      value={formData.status} 
+                      onValueChange={(v) => updateField('status', v as IdeaStatus)}
+                    >
+                      <SelectTrigger>
+                        {(() => {
+                          const StatusIcon = statusConfig[formData.status].icon
+                          return <StatusIcon className="h-4 w-4 mr-2" />
+                        })()}
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(statusConfig).map(([status, config]) => {
+                          const Icon = config.icon
+                          return (
+                            <SelectItem key={status} value={status}>
+                              <div className="flex items-center gap-2">
+                                <Icon className={cn("h-4 w-4", config.color)} />
+                                {config.label}
+                              </div>
+                            </SelectItem>
+                          )
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Priority</Label>
+                    <Select 
+                      value={formData.priority.toString()} 
+                      onValueChange={(v) => updateField('priority', parseInt(v))}
+                    >
+                      <SelectTrigger>
+                        <Flag className="h-4 w-4 mr-2" />
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-red-500" />
+                            High
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                            Medium
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-gray-500" />
+                            Low
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </TabsContent>
 

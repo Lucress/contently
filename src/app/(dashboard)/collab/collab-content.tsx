@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient, createUntypedClient } from '@/lib/supabase/client'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { 
   Building2,
   Plus,
@@ -60,7 +61,7 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/use-toast'
 import { Tables } from '@/types/database'
 import { formatDistanceToNow, format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { enUS } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 
 type Brand = Tables<'brands'> & {
@@ -106,6 +107,32 @@ export function CollabContent({
   const [activeTab, setActiveTab] = useState('pipeline')
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState<string>('all')
+  
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  
+  // Handle URL params for opening dialogs from topbar
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    const action = searchParams.get('action')
+    
+    if (tab === 'brands') {
+      setActiveTab('brands')
+      if (action === 'new') {
+        setIsBrandDialogOpen(true)
+      }
+    } else if (tab === 'deals') {
+      setActiveTab('pipeline')
+      if (action === 'new') {
+        setIsDealDialogOpen(true)
+      }
+    }
+    
+    // Clean up URL params after handling
+    if (tab || action) {
+      router.replace('/collab', { scroll: false })
+    }
+  }, [searchParams, router])
   
   // Brand Dialog
   const [isBrandDialogOpen, setIsBrandDialogOpen] = useState(false)
@@ -379,8 +406,8 @@ export function CollabContent({
     } catch (error) {
       console.error(error)
       toast({
-        title: 'Erreur',
-        description: 'Impossible de supprimer la marque.',
+        title: 'Error',
+        description: 'Unable to delete brand.',
         variant: 'destructive',
       })
     }
@@ -428,7 +455,7 @@ export function CollabContent({
   }
 
   const formatCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
       minimumFractionDigits: 0,
@@ -447,17 +474,17 @@ export function CollabContent({
             Collaborations
           </h1>
           <p className="text-muted-foreground mt-1">
-            Gérez vos partenariats et opportunités
+            Manage your brand partnerships and deals
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => openBrandDialog()} className="border-brand-200 hover:bg-brand-50 dark:border-brand-800">
             <Building2 className="h-4 w-4 mr-2" />
-            Nouvelle marque
+            New Brand Partner
           </Button>
           <Button onClick={() => openDealDialog()} className="bg-brand-600 hover:bg-brand-700">
             <Plus className="h-4 w-4 mr-2" />
-            Nouveau deal
+            New Deal
           </Button>
         </div>
       </div>
@@ -471,7 +498,7 @@ export function CollabContent({
         >
           <div className="flex items-center gap-2 text-muted-foreground mb-1">
             <Building2 className="h-4 w-4" />
-            <span className="text-sm">Marques</span>
+            <span className="text-sm">Brand Partners</span>
           </div>
           <p className="text-2xl font-semibold">{stats.totalBrands}</p>
         </motion.div>
@@ -483,7 +510,7 @@ export function CollabContent({
         >
           <div className="flex items-center gap-2 text-muted-foreground mb-1">
             <Briefcase className="h-4 w-4" />
-            <span className="text-sm">Deals actifs</span>
+            <span className="text-sm">Active Deals</span>
           </div>
           <p className="text-2xl font-semibold">{stats.activeDeals}</p>
         </motion.div>
@@ -509,7 +536,7 @@ export function CollabContent({
         >
           <div className="flex items-center gap-2 text-muted-foreground mb-1">
             <DollarSign className="h-4 w-4" />
-            <span className="text-sm">Gagné</span>
+            <span className="text-sm">Won</span>
           </div>
           <p className="text-2xl font-semibold text-green-600">
             {formatCurrency(stats.totalWon, 'EUR')}
@@ -521,8 +548,8 @@ export function CollabContent({
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
-          <TabsTrigger value="deals">Tous les deals</TabsTrigger>
-          <TabsTrigger value="brands">Marques</TabsTrigger>
+          <TabsTrigger value="deals">All Deals</TabsTrigger>
+          <TabsTrigger value="brands">Brand Partners</TabsTrigger>
         </TabsList>
 
         {/* Pipeline View */}
@@ -573,7 +600,7 @@ export function CollabContent({
                                 openDealDialog(deal)
                               }}>
                                 <Edit className="h-4 w-4 mr-2" />
-                                Modifier
+                                Edit
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               {pipelineStages.filter(s => s !== deal.status).map(s => (
@@ -597,7 +624,7 @@ export function CollabContent({
                                 }}
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
-                                Supprimer
+                                Delete
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -626,7 +653,7 @@ export function CollabContent({
                         {deal.deadline && (
                           <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            {format(new Date(deal.deadline), 'd MMM', { locale: fr })}
+                            {format(new Date(deal.deadline), 'd MMM', { locale: enUS })}
                           </p>
                         )}
                       </motion.div>
@@ -644,7 +671,7 @@ export function CollabContent({
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Rechercher un deal..."
+                placeholder="Search deals..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -653,10 +680,10 @@ export function CollabContent({
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="w-[180px]">
                 <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Statut" />
+                <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tous les statuts</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 {Object.entries(dealStatusConfig).map(([key, config]) => (
                   <SelectItem key={key} value={key}>{config.label}</SelectItem>
                 ))}
@@ -703,7 +730,7 @@ export function CollabContent({
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => openDealDialog(deal)}>
                         <Edit className="h-4 w-4 mr-2" />
-                        Modifier
+                        Edit
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
@@ -711,7 +738,7 @@ export function CollabContent({
                         onClick={() => handleDeleteDeal(deal)}
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
-                        Supprimer
+                        Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -726,7 +753,7 @@ export function CollabContent({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Rechercher une marque..."
+              placeholder="Search brand partners..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -760,14 +787,14 @@ export function CollabContent({
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => openBrandDialog(brand)}>
                             <Edit className="h-4 w-4 mr-2" />
-                            Modifier
+                            Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => {
                             setDealForm(prev => ({ ...prev, brand_id: brand.id }))
                             setIsDealDialogOpen(true)
                           }}>
                             <Plus className="h-4 w-4 mr-2" />
-                            Nouveau deal
+                            New Deal
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem 
@@ -775,7 +802,7 @@ export function CollabContent({
                             onClick={() => handleDeleteBrand(brand)}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
-                            Supprimer
+                            Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -827,20 +854,20 @@ export function CollabContent({
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {editingBrand ? 'Modifier la marque' : 'Nouvelle marque'}
+              {editingBrand ? 'Edit Brand Partner' : 'New Brand Partner'}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Nom *</Label>
+              <Label>Name *</Label>
               <Input
-                placeholder="Nom de la marque"
+                placeholder="Brand name"
                 value={brandForm.name}
                 onChange={(e) => setBrandForm(prev => ({ ...prev, name: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
-              <Label>Site web</Label>
+              <Label>Website</Label>
               <Input
                 placeholder="https://..."
                 value={brandForm.website}
@@ -849,9 +876,9 @@ export function CollabContent({
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Nom du contact</Label>
+                <Label>Contact Name</Label>
                 <Input
-                  placeholder="Jean Dupont"
+                  placeholder="John Doe"
                   value={brandForm.contact_name}
                   onChange={(e) => setBrandForm(prev => ({ ...prev, contact_name: e.target.value }))}
                 />
@@ -860,7 +887,7 @@ export function CollabContent({
                 <Label>Email</Label>
                 <Input
                   type="email"
-                  placeholder="contact@marque.com"
+                  placeholder="contact@brand.com"
                   value={brandForm.contact_email}
                   onChange={(e) => setBrandForm(prev => ({ ...prev, contact_email: e.target.value }))}
                 />
@@ -869,7 +896,7 @@ export function CollabContent({
             <div className="space-y-2">
               <Label>Notes</Label>
               <Textarea
-                placeholder="Notes sur la marque..."
+                placeholder="Notes about this brand partner..."
                 value={brandForm.notes}
                 onChange={(e) => setBrandForm(prev => ({ ...prev, notes: e.target.value }))}
               />
@@ -877,10 +904,10 @@ export function CollabContent({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsBrandDialogOpen(false)}>
-              Annuler
+              Cancel
             </Button>
             <Button onClick={handleSaveBrand} disabled={isLoading}>
-              {isLoading ? 'Sauvegarde...' : 'Sauvegarder'}
+              {isLoading ? 'Saving...' : 'Save'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -891,29 +918,29 @@ export function CollabContent({
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {editingDeal ? 'Modifier le deal' : 'Nouveau deal'}
+              {editingDeal ? 'Edit Deal' : 'New Deal'}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Titre *</Label>
+              <Label>Title *</Label>
               <Input
-                placeholder="Titre du deal"
+                placeholder="Deal title"
                 value={dealForm.title}
                 onChange={(e) => setDealForm(prev => ({ ...prev, title: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
-              <Label>Marque</Label>
+              <Label>Brand Partner</Label>
               <Select 
                 value={dealForm.brand_id} 
                 onValueChange={(v) => setDealForm(prev => ({ ...prev, brand_id: v }))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner une marque..." />
+                  <SelectValue placeholder="Select a brand..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Aucune</SelectItem>
+                  <SelectItem value="">None</SelectItem>
                   {brands.map(brand => (
                     <SelectItem key={brand.id} value={brand.id}>{brand.name}</SelectItem>
                   ))}
@@ -922,7 +949,7 @@ export function CollabContent({
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Montant</Label>
+                <Label>Amount</Label>
                 <Input
                   type="number"
                   placeholder="1000"
@@ -931,7 +958,7 @@ export function CollabContent({
                 />
               </div>
               <div className="space-y-2">
-                <Label>Devise</Label>
+                <Label>Currency</Label>
                 <Select 
                   value={dealForm.currency} 
                   onValueChange={(v) => setDealForm(prev => ({ ...prev, currency: v }))}
@@ -949,7 +976,7 @@ export function CollabContent({
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Statut</Label>
+                <Label>Status</Label>
                 <Select 
                   value={dealForm.status} 
                   onValueChange={(v) => setDealForm(prev => ({ ...prev, status: v as DealStatus }))}
@@ -965,7 +992,7 @@ export function CollabContent({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Date limite</Label>
+                <Label>Deadline</Label>
                 <Input
                   type="date"
                   value={dealForm.deadline}
@@ -974,9 +1001,9 @@ export function CollabContent({
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Livrables</Label>
+              <Label>Deliverables</Label>
               <Textarea
-                placeholder="Description des livrables..."
+                placeholder="Description of deliverables..."
                 value={dealForm.deliverables}
                 onChange={(e) => setDealForm(prev => ({ ...prev, deliverables: e.target.value }))}
               />
@@ -984,7 +1011,7 @@ export function CollabContent({
             <div className="space-y-2">
               <Label>Notes</Label>
               <Textarea
-                placeholder="Notes sur le deal..."
+                placeholder="Notes about this deal..."
                 value={dealForm.notes}
                 onChange={(e) => setDealForm(prev => ({ ...prev, notes: e.target.value }))}
               />
@@ -992,10 +1019,10 @@ export function CollabContent({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDealDialogOpen(false)}>
-              Annuler
+              Cancel
             </Button>
             <Button onClick={handleSaveDeal} disabled={isLoading}>
-              {isLoading ? 'Sauvegarde...' : 'Sauvegarder'}
+              {isLoading ? 'Saving...' : 'Save'}
             </Button>
           </DialogFooter>
         </DialogContent>
