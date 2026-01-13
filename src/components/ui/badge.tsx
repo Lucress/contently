@@ -2,26 +2,26 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium transition-colors focus:outline-none focus:ring-1 focus:ring-ring',
   {
     variants: {
       variant: {
         default: 'border-transparent bg-primary text-primary-foreground',
         secondary: 'border-transparent bg-secondary text-secondary-foreground',
-        destructive: 'border-transparent bg-destructive text-destructive-foreground',
-        success: 'border-transparent bg-success text-success-foreground',
-        warning: 'border-transparent bg-warning text-warning-foreground',
-        outline: 'text-foreground',
-        // Status-based variants
-        draft: 'border-transparent bg-gray-100 text-gray-700',
-        scripted: 'border-transparent bg-blue-100 text-blue-700',
-        planned: 'border-transparent bg-purple-100 text-purple-700',
-        to_film: 'border-transparent bg-yellow-100 text-yellow-700',
-        filmed: 'border-transparent bg-orange-100 text-orange-700',
-        editing: 'border-transparent bg-pink-100 text-pink-700',
-        scheduled: 'border-transparent bg-indigo-100 text-indigo-700',
-        published: 'border-transparent bg-green-100 text-green-700',
-        archived: 'border-transparent bg-gray-100 text-gray-500',
+        destructive: 'border-transparent bg-destructive/10 text-destructive',
+        success: 'border-transparent bg-success/10 text-success',
+        warning: 'border-transparent bg-warning/10 text-warning',
+        outline: 'text-foreground border-border',
+        // Status-based variants - more muted colors
+        draft: 'border-transparent bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+        scripted: 'border-transparent bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+        planned: 'border-transparent bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+        to_film: 'border-transparent bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
+        filmed: 'border-transparent bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
+        editing: 'border-transparent bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400',
+        scheduled: 'border-transparent bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400',
+        published: 'border-transparent bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400',
+        archived: 'border-transparent bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500',
       },
     },
     defaultVariants: {

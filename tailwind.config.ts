@@ -139,11 +139,9 @@ const config: Config = {
         pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       boxShadow: {
-        'soft': '0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 4px 16px -4px rgba(0, 0, 0, 0.05)',
-        'soft-lg': '0 4px 16px -4px rgba(0, 0, 0, 0.08), 0 8px 32px -8px rgba(0, 0, 0, 0.08)',
-        'soft-xl': '0 8px 32px -8px rgba(0, 0, 0, 0.1), 0 16px 64px -16px rgba(0, 0, 0, 0.1)',
-        'glow': '0 0 20px rgba(139, 92, 246, 0.15)',
-        'glow-lg': '0 0 40px rgba(139, 92, 246, 0.2)',
+        'xs': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        'soft': '0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.06)',
+        'soft-lg': '0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.06)',
       },
       spacing: {
         '18': '4.5rem',

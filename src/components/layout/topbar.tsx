@@ -47,24 +47,24 @@ export function Topbar({ user, profile, subscription }: TopbarProps) {
   }[subscription?.plan || 'free']
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background px-6">
       {/* Search */}
       <div className="flex items-center gap-4 flex-1 max-w-md">
         <div className="relative w-full">
           <Input
             placeholder="Search..."
-            className="pl-10 bg-muted/50 border-0 focus-visible:ring-1"
+            className="bg-transparent"
             icon={<Search className="h-4 w-4" />}
           />
         </div>
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         {/* Quick Add */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button size="sm" className="gap-2">
+            <Button size="sm" className="gap-1.5">
               <Plus className="h-4 w-4" />
               <span className="hidden sm:inline">Create</span>
             </Button>
@@ -95,29 +95,29 @@ export function Topbar({ user, profile, subscription }: TopbarProps) {
         </DropdownMenu>
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
+        <Button variant="ghost" size="icon-sm" className="relative">
+          <Bell className="h-4 w-4" />
+          <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-primary rounded-full" />
         </Button>
 
         {/* Theme Toggle */}
         <Button
           variant="ghost"
-          size="icon"
+          size="icon-sm"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         >
-          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <Sun className="h-4 w-4 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
           <span className="sr-only">Toggle theme</span>
         </Button>
 
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-              <Avatar className="h-9 w-9">
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Avatar className="h-8 w-8">
                 <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || ''} />
-                <AvatarFallback className="bg-primary/10 text-primary">
+                <AvatarFallback className="bg-muted text-muted-foreground text-xs">
                   {getInitials(profile?.full_name)}
                 </AvatarFallback>
               </Avatar>
@@ -133,7 +133,7 @@ export function Topbar({ user, profile, subscription }: TopbarProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem className="justify-between">
               Current Plan
-              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+              <span className="text-xs bg-muted text-foreground px-1.5 py-0.5 rounded">
                 {planLabel}
               </span>
             </DropdownMenuItem>

@@ -3,7 +3,6 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { motion } from 'framer-motion'
 import {
   LayoutDashboard,
   Lightbulb,
@@ -21,7 +20,6 @@ import {
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import { useLanguage } from '@/lib/i18n'
 import { LanguageSwitcher } from '@/components/language-switcher'
 
@@ -64,31 +62,22 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       <Link
         href={item.href}
         className={cn(
-          'sidebar-link group relative',
-          isActive && 'active'
+          'flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors',
+          isActive 
+            ? 'bg-accent text-foreground font-medium' 
+            : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
         )}
       >
-        <Icon className="h-5 w-5 shrink-0" />
+        <Icon className="h-4 w-4 shrink-0" />
         {!isCollapsed && (
-          <motion.span
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -10 }}
-            className="truncate"
-          >
+          <span className="truncate">
             {title}
-          </motion.span>
-        )}
-        {!isCollapsed && item.badge && (
-          <span className="ml-auto text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-            {item.badge}
           </span>
         )}
-        {isActive && (
-          <motion.div
-            layoutId="sidebar-indicator"
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full"
-          />
+        {!isCollapsed && item.badge && (
+          <span className="ml-auto text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+            {item.badge}
+          </span>
         )}
       </Link>
     )
@@ -100,68 +89,57 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       <Link
         href="/settings"
         className={cn(
-          'sidebar-link group relative',
-          isActive && 'active'
+          'flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors',
+          isActive 
+            ? 'bg-accent text-foreground font-medium' 
+            : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
         )}
       >
-        <Settings className="h-5 w-5 shrink-0" />
+        <Settings className="h-4 w-4 shrink-0" />
         {!isCollapsed && (
-          <motion.span
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -10 }}
-            className="truncate"
-          >
+          <span className="truncate">
             {t.nav.settings}
-          </motion.span>
-        )}
-        {isActive && (
-          <motion.div
-            layoutId="sidebar-indicator"
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full"
-          />
+          </span>
         )}
       </Link>
     )
   }
 
   return (
-    <motion.aside
-      initial={false}
-      animate={{ width: isCollapsed ? 72 : 256 }}
-      transition={{ duration: 0.2, ease: 'easeInOut' }}
+    <aside
       className={cn(
-        'fixed left-0 top-0 z-40 h-screen border-r border-border bg-background flex flex-col'
+        'fixed left-0 top-0 z-40 h-screen border-r border-border bg-background flex flex-col transition-[width] duration-150',
+        isCollapsed ? 'w-[72px]' : 'w-64'
       )}
     >
       {/* Logo */}
       <div className={cn(
-        'flex items-center h-16 px-4 border-b border-border',
+        'flex items-center h-14 px-4 border-b border-border',
         isCollapsed ? 'justify-center' : 'justify-between'
       )}>
         {!isCollapsed && (
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
-              <span className="text-white font-bold text-lg">C</span>
+            <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-semibold text-sm">C</span>
             </div>
-            <span className="font-semibold text-lg">Contently</span>
+            <span className="font-semibold">Contently</span>
           </Link>
         )}
         {isCollapsed && (
           <Link href="/dashboard">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
-              <span className="text-white font-bold text-lg">C</span>
+            <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-semibold text-sm">C</span>
             </div>
           </Link>
         )}
       </div>
 
       {/* Navigation */}
-      <ScrollArea className="flex-1 py-4">
+      <ScrollArea className="flex-1 py-3">
         <nav className="px-3 space-y-1">
           {/* Main Section */}
           {!isCollapsed && (
-            <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <p className="px-3 mb-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
               {t.nav.creation}
             </p>
           )}
@@ -169,11 +147,11 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             <NavLink key={item.href} item={item} />
           ))}
 
-          <Separator className="my-4" />
+          <div className="my-3 mx-3 border-t border-border" />
 
           {/* Business Section */}
           {!isCollapsed && (
-            <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <p className="px-3 mb-2 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
               {t.nav.business}
             </p>
           )}
@@ -184,15 +162,15 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       </ScrollArea>
 
       {/* Footer */}
-      <div className="border-t border-border p-3 space-y-2">
+      <div className="border-t border-border p-3 space-y-1">
         <SettingsLink />
         {!isCollapsed && <LanguageSwitcher />}
         <Button
           variant="ghost"
-          size="icon"
+          size="icon-sm"
           onClick={onToggle}
           className={cn(
-            'w-full h-9',
+            'w-full',
             isCollapsed ? 'justify-center' : 'justify-end'
           )}
         >
@@ -203,6 +181,6 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           )}
         </Button>
       </div>
-    </motion.aside>
+    </aside>
   )
 }

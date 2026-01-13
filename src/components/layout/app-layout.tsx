@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { motion } from 'framer-motion'
 import { Sidebar } from './sidebar'
 import { Topbar } from './topbar'
 import { cn } from '@/lib/utils'
@@ -24,24 +23,18 @@ export function AppLayout({ children, user, profile, subscription }: AppLayoutPr
     <div className="min-h-screen bg-background">
       <Sidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
       
-      <motion.div
-        initial={false}
-        animate={{ marginLeft: isCollapsed ? 72 : 256 }}
-        transition={{ duration: 0.2, ease: 'easeInOut' }}
-        className="flex flex-col min-h-screen"
+      <div
+        className={cn(
+          "flex flex-col min-h-screen transition-[margin] duration-150",
+          isCollapsed ? "ml-[72px]" : "ml-64"
+        )}
       >
         <Topbar user={user} profile={profile} subscription={subscription} />
         
         <main className="flex-1 p-6">
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            {children}
-          </motion.div>
+          {children}
         </main>
-      </motion.div>
+      </div>
     </div>
   )
 }
