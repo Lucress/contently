@@ -457,48 +457,54 @@ function IdeaCard({ idea, index, onDelete, onStatusChange }: IdeaCardProps) {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ delay: index * 0.03 }}
-      className="group bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer"
-      onClick={() => router.push(`/ideas/${idea.id}`)}
+      className="group bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-all"
     >
       <div className="p-4 space-y-3">
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 cursor-pointer" onClick={() => router.push(`/ideas/${idea.id}`)}>
             <h3 className="font-medium line-clamp-2 group-hover:text-primary transition-colors">
               {idea.title}
             </h3>
           </div>
-          <div onClick={(e) => e.stopPropagation()}>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => router.push(`/ideas/${idea.id}`)}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  View
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push(`/ideas/${idea.id}`)}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  className="text-red-600"
-                  onClick={() => onDelete(idea)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={(e) => {
+                e.stopPropagation()
+                router.push(`/ideas/${idea.id}`)
+              }}>
+                <Eye className="h-4 w-4 mr-2" />
+                View
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => {
+                e.stopPropagation()
+                router.push(`/ideas/${idea.id}`)
+              }}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                className="text-red-600"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete(idea)
+                }}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Hook */}
@@ -565,8 +571,7 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
       transition={{ delay: index * 0.02 }}
-      className="group bg-card border rounded-lg p-4 hover:shadow-md transition-all cursor-pointer"
-      onClick={() => router.push(`/ideas/${idea.id}`)}
+      className="group bg-card border rounded-lg p-4 hover:shadow-md transition-all"
     >
       <div className="flex items-center gap-4">
         {/* Status Icon */}
@@ -575,7 +580,7 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => router.push(`/ideas/${idea.id}`)}>
           <h3 className="font-medium truncate hover:underline">{idea.title}</h3>
           <div className="flex items-center gap-3 mt-1">
             {idea.content_pillar && (
@@ -606,12 +611,15 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
         )}
 
         {/* Actions */}
-        <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2 shrink-0">
           <Button 
             size="sm" 
             variant="ghost" 
             className="hidden sm:inline-flex"
-            onClick={() => router.push(`/ideas/${idea.id}`)}
+            onClick={(e) => {
+              e.stopPropagation()
+              router.push(`/ideas/${idea.id}`)
+            }}
           >
             View
             <ArrowUpRight className="h-3.5 w-3.5 ml-1" />
@@ -623,18 +631,27 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => router.push(`/ideas/${idea.id}`)}>
+              <DropdownMenuItem onClick={(e) => {
+                e.stopPropagation()
+                router.push(`/ideas/${idea.id}`)
+              }}>
                 <Eye className="h-4 w-4 mr-2" />
                 View
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push(`/ideas/${idea.id}`)}>
+              <DropdownMenuItem onClick={(e) => {
+                e.stopPropagation()
+                router.push(`/ideas/${idea.id}`)
+              }}>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 className="text-red-600"
-                onClick={() => onDelete(idea)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete(idea)
+                }}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete

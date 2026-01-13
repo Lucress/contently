@@ -336,6 +336,7 @@ export type Database = {
           source_author: string | null
           notes: string | null
           tags: string[] | null
+          status: 'pending' | 'reviewing' | 'approved' | 'converted' | 'archived'
           is_processed: boolean
           converted_to_idea_id: string | null
           created_at: string
@@ -351,6 +352,7 @@ export type Database = {
           source_author?: string | null
           notes?: string | null
           tags?: string[] | null
+          status?: 'pending' | 'reviewing' | 'approved' | 'converted' | 'archived'
           is_processed?: boolean
           converted_to_idea_id?: string | null
           created_at?: string
@@ -366,6 +368,7 @@ export type Database = {
           source_author?: string | null
           notes?: string | null
           tags?: string[] | null
+          status?: 'pending' | 'reviewing' | 'approved' | 'converted' | 'archived'
           is_processed?: boolean
           converted_to_idea_id?: string | null
           created_at?: string
