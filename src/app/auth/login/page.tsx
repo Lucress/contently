@@ -23,7 +23,7 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
@@ -33,13 +33,15 @@ export default function LoginPage() {
 
   const redirectTo = searchParams.get('redirect') || '/dashboard'
 
+  const form = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+  })
+
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
-  })
+  } = form
 
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true)
@@ -220,5 +222,13 @@ export default function LoginPage() {
         </Link>
       </p>
     </motion.div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <LoginForm />
+    </React.Suspense>
   )
 }
