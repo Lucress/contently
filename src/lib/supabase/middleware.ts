@@ -76,6 +76,11 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
+  // Redirect authenticated users from landing page to dashboard
+  if (request.nextUrl.pathname === '/' && user) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+
   // Check onboarding status for authenticated users
   if (user && isProtectedPath && !request.nextUrl.pathname.startsWith('/onboarding')) {
     const { data: profile } = await supabase
