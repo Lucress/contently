@@ -179,6 +179,16 @@ export function EmailHubContent({
   }
 
   const handleAddAccount = async () => {
+    // For Gmail OAuth, show coming soon message
+    if (accountForm.provider === 'gmail') {
+      toast({
+        title: 'Gmail OAuth',
+        description: 'Gmail OAuth integration coming soon. For now, please use IMAP/SMTP.',
+      })
+      return
+    }
+
+    // Validate email_address for IMAP
     if (!accountForm.email_address) {
       toast({
         title: 'Error',
@@ -197,16 +207,15 @@ export function EmailHubContent({
         is_active: true,
       }
 
-      if (accountForm.provider === 'imap') {
-        accountData.imap_host = accountForm.imap_host
-        accountData.imap_port = parseInt(accountForm.imap_port)
-        accountData.smtp_host = accountForm.smtp_host
-        accountData.smtp_port = parseInt(accountForm.smtp_port)
-        // Note: In production, credentials should be encrypted
-        accountData.credentials = {
-          username: accountForm.username,
-          password: accountForm.password, // Should be encrypted!
-        }
+      // Add IMAP/SMTP credentials
+      accountData.imap_host = accountForm.imap_host
+      accountData.imap_port = parseInt(accountForm.imap_port)
+      accountData.smtp_host = accountForm.smtp_host
+      accountData.smtp_port = parseInt(accountForm.smtp_port)
+      // Note: In production, credentials should be encrypted
+      accountData.credentials = {
+        username: accountForm.username,
+        password: accountForm.password, // Should be encrypted!
       }
 
       const { data, error } = await supabase
@@ -230,16 +239,10 @@ export function EmailHubContent({
         password: '',
       })
 
-      if (accountForm.provider === 'gmail') {
-        // Redirect to Gmail OAuth
-        toast({
-          title: 'Account added',
-          description: 'You will be redirected to Google to authorize access.',
-        })
-        // In real implementation: redirect to OAuth flow
-      } else {
-        toast({ title: 'IMAP account added' })
-      }
+      toast({ 
+        title: 'Account added',
+        description: 'Your email account has been connected successfully.',
+      })
     } catch (error) {
       console.error(error)
       toast({
@@ -804,14 +807,14 @@ export function EmailHubContent({
       <Dialog open={isAccountDialogOpen} onOpenChange={setIsAccountDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Ajouter un compte email</DialogTitle>
+            <DialogTitle>Add Email Account</DialogTitle>
             <DialogDescription>
-              Connectez un compte pour centraliser vos emails.
+              Connect an account to centralize your emails.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Type de compte</Label>
+              <Label>Account Type</Label>
               <Select 
                 value={accountForm.provider} 
                 onValueChange={(v) => setAccountForm(prev => ({ ...prev, provider: v as any }))}
@@ -837,26 +840,26 @@ export function EmailHubContent({
             {accountForm.provider === 'gmail' ? (
               <div className="bg-muted/50 rounded-lg p-4 text-sm">
                 <p className="mb-2">
-                  Vous serez redirigé vers Google pour autoriser l'accès à votre compte Gmail.
+                  You will be redirected to Google to authorize access to your Gmail account.
                 </p>
                 <p className="text-muted-foreground">
-                  Permissions demandées : lecture et envoi d'emails.
+                  Permissions requested: read and send emails.
                 </p>
               </div>
             ) : (
               <>
                 <div className="space-y-2">
-                  <Label>Adresse email</Label>
+                  <Label>Email Address</Label>
                   <Input
                     type="email"
-                    placeholder="vous@example.com"
+                    placeholder="you@example.com"
                     value={accountForm.email_address}
                     onChange={(e) => setAccountForm(prev => ({ ...prev, email_address: e.target.value }))}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Serveur IMAP</Label>
+                    <Label>IMAP Server</Label>
                     <Input
                       placeholder="imap.example.com"
                       value={accountForm.imap_host}
@@ -864,7 +867,7 @@ export function EmailHubContent({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Port IMAP</Label>
+                    <Label>IMAP Port</Label>
                     <Input
                       type="number"
                       value={accountForm.imap_port}
@@ -874,7 +877,7 @@ export function EmailHubContent({
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Serveur SMTP</Label>
+                    <Label>SMTP Server</Label>
                     <Input
                       placeholder="smtp.example.com"
                       value={accountForm.smtp_host}
@@ -882,7 +885,7 @@ export function EmailHubContent({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Port SMTP</Label>
+                    <Label>SMTP Port</Label>
                     <Input
                       type="number"
                       value={accountForm.smtp_port}
@@ -892,14 +895,14 @@ export function EmailHubContent({
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Nom d'utilisateur</Label>
+                    <Label>Username</Label>
                     <Input
                       value={accountForm.username}
                       onChange={(e) => setAccountForm(prev => ({ ...prev, username: e.target.value }))}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Mot de passe</Label>
+                    <Label>Password</Label>
                     <Input
                       type="password"
                       value={accountForm.password}
@@ -912,10 +915,10 @@ export function EmailHubContent({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAccountDialogOpen(false)}>
-              Annuler
+              Cancel
             </Button>
             <Button onClick={handleAddAccount} disabled={isLoading}>
-              {accountForm.provider === 'gmail' ? 'Se connecter avec Google' : 'Ajouter le compte'}
+              {accountForm.provider === 'gmail' ? 'Connect with Google' : 'Add Account'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -925,12 +928,12 @@ export function EmailHubContent({
       <Dialog open={isComposeDialogOpen} onOpenChange={setIsComposeDialogOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Nouveau message</DialogTitle>
+            <DialogTitle>New Message</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             {emailAccounts.length > 1 && (
               <div className="space-y-2">
-                <Label>De</Label>
+                <Label>From</Label>
                 <Select 
                   value={composeForm.account_id || emailAccounts[0]?.id} 
                   onValueChange={(v) => setComposeForm(prev => ({ ...prev, account_id: v }))}
@@ -949,18 +952,18 @@ export function EmailHubContent({
               </div>
             )}
             <div className="space-y-2">
-              <Label>À</Label>
+              <Label>To</Label>
               <Input
                 type="email"
-                placeholder="destinataire@example.com"
+                placeholder="recipient@example.com"
                 value={composeForm.to}
                 onChange={(e) => setComposeForm(prev => ({ ...prev, to: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
-              <Label>Objet</Label>
+              <Label>Subject</Label>
               <Input
-                placeholder="Objet du message"
+                placeholder="Message subject"
                 value={composeForm.subject}
                 onChange={(e) => setComposeForm(prev => ({ ...prev, subject: e.target.value }))}
               />
@@ -973,7 +976,7 @@ export function EmailHubContent({
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="sm">
                         <FileText className="h-4 w-4 mr-2" />
-                        Utiliser un template
+                        Use Template
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -990,7 +993,7 @@ export function EmailHubContent({
                 )}
               </div>
               <Textarea
-                placeholder="Écrivez votre message..."
+                placeholder="Write your message..."
                 rows={10}
                 value={composeForm.body}
                 onChange={(e) => setComposeForm(prev => ({ ...prev, body: e.target.value }))}
@@ -999,11 +1002,11 @@ export function EmailHubContent({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsComposeDialogOpen(false)}>
-              Annuler
+              Cancel
             </Button>
             <Button onClick={handleSendEmail} disabled={isLoading}>
               <Send className="h-4 w-4 mr-2" />
-              {isLoading ? 'Envoi...' : 'Envoyer'}
+              {isLoading ? 'Sending...' : 'Send'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1014,20 +1017,20 @@ export function EmailHubContent({
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {editingTemplate ? 'Modifier le template' : 'Nouveau template'}
+              {editingTemplate ? 'Edit Template' : 'New Template'}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Nom du template</Label>
+              <Label>Template Name</Label>
               <Input
-                placeholder="Ex: Proposition de partenariat"
+                placeholder="E.g., Partnership Proposal"
                 value={templateForm.name}
                 onChange={(e) => setTemplateForm(prev => ({ ...prev, name: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
-              <Label>Catégorie</Label>
+              <Label>Category</Label>
               <Select 
                 value={templateForm.category} 
                 onValueChange={(v) => setTemplateForm(prev => ({ ...prev, category: v }))}
@@ -1036,18 +1039,18 @@ export function EmailHubContent({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="outreach">Prospection</SelectItem>
-                  <SelectItem value="follow_up">Relance</SelectItem>
-                  <SelectItem value="proposal">Proposition</SelectItem>
-                  <SelectItem value="thank_you">Remerciement</SelectItem>
-                  <SelectItem value="other">Autre</SelectItem>
+                  <SelectItem value="outreach">Outreach</SelectItem>
+                  <SelectItem value="follow_up">Follow Up</SelectItem>
+                  <SelectItem value="proposal">Proposal</SelectItem>
+                  <SelectItem value="thank_you">Thank You</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Objet</Label>
+              <Label>Subject</Label>
               <Input
-                placeholder="Objet de l'email"
+                placeholder="Email subject"
                 value={templateForm.subject}
                 onChange={(e) => setTemplateForm(prev => ({ ...prev, subject: e.target.value }))}
               />
