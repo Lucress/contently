@@ -65,7 +65,7 @@ import {
   subWeeks,
   parseISO
 } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { enUS } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 
 type PlannerItem = Tables<'planner_items'> & {
@@ -88,9 +88,20 @@ type UnscheduledIdea = {
   content_pillar?: { id: string; name: string; color: string } | null
 }
 
+type FilmedIdea = {
+  id: string
+  title: string
+  hook: string | null
+  status: string
+  priority: string
+  filmed_at: string | null
+  content_pillar?: { id: string; name: string; color: string } | null
+}
+
 interface PlannerContentProps {
   plannerItems: PlannerItem[]
   unscheduledIdeas: UnscheduledIdea[]
+  filmedIdeas: FilmedIdea[]
   userId: string
 }
 
@@ -113,18 +124,22 @@ const priorityColors = {
 export function PlannerContent({ 
   plannerItems: initialItems, 
   unscheduledIdeas: initialUnscheduled,
+  filmedIdeas: initialFilmed,
   userId 
 }: PlannerContentProps) {
   const [plannerItems, setPlannerItems] = useState(initialItems)
   const [unscheduledIdeas, setUnscheduledIdeas] = useState(initialUnscheduled)
+  const [filmedIdeas, setFilmedIdeas] = useState(initialFilmed)
   const [currentDate, setCurrentDate] = useState(new Date())
   const [viewMode, setViewMode] = useState<'week' | 'month'>('week')
+  const [sidebarTab, setSidebarTab] = useState<'scripted' | 'filmed'>('scripted')
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedIdea, setSelectedIdea] = useState<string>('')
   const [selectedSlotType, setSelectedSlotType] = useState<string>('filming')
   const [selectedTime, setSelectedTime] = useState<string>('09:00')
   const [draggedIdea, setDraggedIdea] = useState<UnscheduledIdea | null>(null)
+  const [draggedFilmedIdea, setDraggedFilmedIdea] = useState<FilmedIdea | null>(null)
 
   const { toast } = useToast()
   const supabase = createClient()
@@ -243,7 +258,7 @@ export function PlannerContent({
 
       toast({
         title: 'Idea scheduled',
-        description: 'L\'idée a été ajoutée au planning.',
+        description: 'The idea has been added to the planner.',
       })
     } catch (error) {
       console.error(error)
@@ -296,11 +311,74 @@ export function PlannerContent({
     setDraggedIdea(idea)
   }
 
+  const handleFilmedDragStart = (idea: FilmedIdea) => {
+    setDraggedFilmedIdea(idea)
+  }
+
   const handleDragEnd = () => {
     setDraggedIdea(null)
+    setDraggedFilmedIdea(null)
   }
 
   const handleDrop = async (date: Date) => {
+    // Handle filmed idea drop (scheduling publication)
+    if (draggedFilmedIdea) {
+      try {
+        const { data: plannerItem, error } = await supabaseMutation
+          .from('planner_items')
+          .insert({
+            user_id: userId,
+            idea_id: draggedFilmedIdea.id,
+            title: draggedFilmedIdea.title,
+            date: format(date, 'yyyy-MM-dd'),
+            item_type: 'publishing',
+            start_time: '12:00',
+          })
+          .select(`
+            *,
+            idea:ideas(
+              id,
+              title,
+              hook,
+              status,
+              priority,
+              content_pillar:content_pillars(id, name, color)
+            )
+          `)
+          .single()
+
+        if (error) throw error
+
+        // Update idea with publish date
+        await supabaseMutation
+          .from('ideas')
+          .update({ 
+            status: 'scheduled',
+            publish_date: format(date, 'yyyy-MM-dd')
+          })
+          .eq('id', draggedFilmedIdea.id)
+
+        setPlannerItems(prev => [...prev, plannerItem as PlannerItem])
+        setFilmedIdeas(prev => prev.filter(i => i.id !== draggedFilmedIdea.id))
+
+        toast({
+          title: 'Publication scheduled',
+          description: `"${draggedFilmedIdea.title}" will be published on ${format(date, 'MMMM d')}.`,
+        })
+      } catch (error) {
+        console.error(error)
+        toast({
+          title: 'Error',
+          description: 'Unable to schedule the publication.',
+          variant: 'destructive',
+        })
+      }
+
+      setDraggedFilmedIdea(null)
+      return
+    }
+
+    // Handle scripted idea drop (scheduling filming)
     if (!draggedIdea) return
 
     try {
@@ -378,7 +456,7 @@ export function PlannerContent({
                 onClick={() => setViewMode('week')}
               >
                 <CalendarDays className="h-4 w-4" />
-                Semaine
+                Week
               </Button>
               <Button
                 variant={viewMode === 'month' ? 'secondary' : 'ghost'}
@@ -387,7 +465,7 @@ export function PlannerContent({
                 onClick={() => setViewMode('month')}
               >
                 <LayoutGrid className="h-4 w-4" />
-                Mois
+                Month
               </Button>
             </div>
 
@@ -397,7 +475,7 @@ export function PlannerContent({
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Button variant="outline" onClick={navigateToday}>
-                Aujourd'hui
+                Today
               </Button>
               <Button variant="outline" size="icon" onClick={navigateNext}>
                 <ChevronRight className="h-4 w-4" />
@@ -410,8 +488,8 @@ export function PlannerContent({
         <div className="mb-4">
           <h2 className="text-lg font-medium">
             {viewMode === 'week' 
-              ? `Semaine du ${format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'd MMMM', { locale: fr })} au ${format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'd MMMM yyyy', { locale: fr })}`
-              : format(currentDate, 'MMMM yyyy', { locale: fr })
+              ? `Week of ${format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'MMMM d', { locale: enUS })} - ${format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'MMMM d, yyyy', { locale: enUS })}`
+              : format(currentDate, 'MMMM yyyy', { locale: enUS })
             }
           </h2>
         </div>
@@ -424,7 +502,7 @@ export function PlannerContent({
               "grid border-b bg-muted/30",
               viewMode === 'week' ? "grid-cols-7" : "grid-cols-7"
             )}>
-              {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day) => (
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
                 <div key={day} className="p-3 text-center text-sm font-medium text-muted-foreground">
                   {day}
                 </div>
@@ -448,7 +526,7 @@ export function PlannerContent({
                     className={cn(
                       "border-r border-b p-2 min-h-[120px] transition-colors",
                       !isCurrentMonth && viewMode === 'month' && "bg-muted/20",
-                      draggedIdea && "hover:bg-primary/5 cursor-copy"
+                      (draggedIdea || draggedFilmedIdea) && "hover:bg-primary/5 cursor-copy"
                     )}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={() => handleDrop(day)}
@@ -544,53 +622,150 @@ export function PlannerContent({
             </div>
           </div>
 
-          {/* Unscheduled Ideas Sidebar */}
-          <div className="w-72 bg-card border rounded-xl flex flex-col">
-            <div className="p-4 border-b">
-              <h3 className="font-medium">Idées à planifier</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Glissez-déposez sur le calendrier
-              </p>
+          {/* Ideas Sidebar */}
+          <div className="w-80 bg-card border rounded-xl flex flex-col">
+            {/* Sidebar Tabs */}
+            <div className="flex border-b">
+              <button
+                onClick={() => setSidebarTab('scripted')}
+                className={cn(
+                  "flex-1 px-4 py-3 text-sm font-medium transition-colors",
+                  sidebarTab === 'scripted' 
+                    ? "border-b-2 border-primary text-primary" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                To Film ({unscheduledIdeas.length})
+              </button>
+              <button
+                onClick={() => setSidebarTab('filmed')}
+                className={cn(
+                  "flex-1 px-4 py-3 text-sm font-medium transition-colors",
+                  sidebarTab === 'filmed' 
+                    ? "border-b-2 border-primary text-primary" 
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                To Post ({filmedIdeas.length})
+              </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {unscheduledIdeas.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8 text-sm">
-                  Toutes vos idées sont planifiées ! 🎉
-                </p>
-              ) : (
-                unscheduledIdeas.map((idea) => (
-                  <div
-                    key={idea.id}
-                    draggable
-                    onDragStart={() => handleDragStart(idea)}
-                    onDragEnd={handleDragEnd}
-                    className={cn(
-                      "bg-background border rounded-lg p-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-all border-l-4",
-                      idea.priority && priorityColors[idea.priority as keyof typeof priorityColors]
-                    )}
-                  >
-                    <div className="flex items-start gap-2">
-                      <GripVertical className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm line-clamp-2">{idea.title}</p>
-                        {idea.content_pillar && (
-                          <Badge 
-                            variant="secondary" 
-                            className="mt-1.5 text-xs"
-                            style={{ 
-                              backgroundColor: `${idea.content_pillar.color}20`,
-                              color: idea.content_pillar.color,
-                            }}
-                          >
-                            {idea.content_pillar.name}
-                          </Badge>
+
+            {/* Scripted Ideas - Ready to Film */}
+            {sidebarTab === 'scripted' && (
+              <>
+                <div className="p-4 border-b bg-muted/30">
+                  <p className="text-sm text-muted-foreground">
+                    Drag scripted ideas onto the calendar to schedule filming
+                  </p>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                  {unscheduledIdeas.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8 text-sm">
+                      No scripted ideas to schedule
+                    </p>
+                  ) : (
+                    unscheduledIdeas.map((idea) => (
+                      <div
+                        key={idea.id}
+                        draggable
+                        onDragStart={() => handleDragStart(idea)}
+                        onDragEnd={handleDragEnd}
+                        className={cn(
+                          "bg-background border rounded-lg p-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-all border-l-4",
+                          idea.priority && priorityColors[idea.priority as keyof typeof priorityColors]
                         )}
+                      >
+                        <div className="flex items-start gap-2">
+                          <GripVertical className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm line-clamp-2">{idea.title}</p>
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <Badge variant="outline" className="text-xs">
+                                <Video className="h-3 w-3 mr-1" />
+                                Scripted
+                              </Badge>
+                              {idea.content_pillar && (
+                                <Badge 
+                                  variant="secondary" 
+                                  className="text-xs"
+                                  style={{ 
+                                    backgroundColor: `${idea.content_pillar.color}20`,
+                                    color: idea.content_pillar.color,
+                                  }}
+                                >
+                                  {idea.content_pillar.name}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* Filmed Ideas - Ready to Publish */}
+            {sidebarTab === 'filmed' && (
+              <>
+                <div className="p-4 border-b bg-muted/30">
+                  <p className="text-sm text-muted-foreground">
+                    Drag filmed ideas to schedule when to publish
+                  </p>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                  {filmedIdeas.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8 text-sm">
+                      No filmed ideas ready to publish
+                    </p>
+                  ) : (
+                    filmedIdeas.map((idea) => (
+                      <div
+                        key={idea.id}
+                        draggable
+                        onDragStart={() => handleFilmedDragStart(idea)}
+                        onDragEnd={handleDragEnd}
+                        className={cn(
+                          "bg-background border rounded-lg p-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-all border-l-4 border-l-green-500",
+                          idea.priority && priorityColors[idea.priority as keyof typeof priorityColors]
+                        )}
+                      >
+                        <div className="flex items-start gap-2">
+                          <GripVertical className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm line-clamp-2">{idea.title}</p>
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <Badge variant="outline" className="text-xs text-green-600 border-green-300">
+                                <Video className="h-3 w-3 mr-1" />
+                                Filmed
+                              </Badge>
+                              {idea.filmed_at && (
+                                <span className="text-xs text-muted-foreground">
+                                  {format(parseISO(idea.filmed_at), 'MMM d')}
+                                </span>
+                              )}
+                            </div>
+                            {idea.content_pillar && (
+                              <Badge 
+                                variant="secondary" 
+                                className="mt-1.5 text-xs"
+                                style={{ 
+                                  backgroundColor: `${idea.content_pillar.color}20`,
+                                  color: idea.content_pillar.color,
+                                }}
+                              >
+                                {idea.content_pillar.name}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -599,17 +774,17 @@ export function PlannerContent({
       <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Planifier une idée</DialogTitle>
+            <DialogTitle>Schedule an Idea</DialogTitle>
             <DialogDescription>
-              {selectedDate && `Pour le ${format(selectedDate, 'd MMMM yyyy', { locale: fr })}`}
+              {selectedDate && `For ${format(selectedDate, 'MMMM d, yyyy', { locale: enUS })}`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Idée</Label>
+              <Label>Idea</Label>
               <Select value={selectedIdea} onValueChange={setSelectedIdea}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner une idée..." />
+                  <SelectValue placeholder="Select an idea..." />
                 </SelectTrigger>
                 <SelectContent>
                   {unscheduledIdeas.map((idea) => (
@@ -623,7 +798,7 @@ export function PlannerContent({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Type de slot</Label>
+                <Label>Slot Type</Label>
                 <Select value={selectedSlotType} onValueChange={setSelectedSlotType}>
                   <SelectTrigger>
                     <SelectValue />
@@ -632,19 +807,19 @@ export function PlannerContent({
                     <SelectItem value="filming">
                       <div className="flex items-center gap-2">
                         <Video className="h-4 w-4" />
-                        Tournage
+                        Filming
                       </div>
                     </SelectItem>
                     <SelectItem value="editing">
                       <div className="flex items-center gap-2">
                         <FileEdit className="h-4 w-4" />
-                        Montage
+                        Editing
                       </div>
                     </SelectItem>
                     <SelectItem value="publishing">
                       <div className="flex items-center gap-2">
                         <Send className="h-4 w-4" />
-                        Publication
+                        Publishing
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -652,7 +827,7 @@ export function PlannerContent({
               </div>
 
               <div className="space-y-2">
-                <Label>Heure</Label>
+                <Label>Time</Label>
                 <Input
                   type="time"
                   value={selectedTime}
@@ -663,10 +838,10 @@ export function PlannerContent({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsScheduleDialogOpen(false)}>
-              Annuler
+              Cancel
             </Button>
             <Button onClick={handleScheduleIdea}>
-              Planifier
+              Schedule
             </Button>
           </DialogFooter>
         </DialogContent>

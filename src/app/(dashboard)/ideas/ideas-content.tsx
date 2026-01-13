@@ -50,7 +50,7 @@ import {
 import { useToast } from '@/components/ui/use-toast'
 import { Tables } from '@/types/database'
 import { formatDistanceToNow, format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { enUS } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 
 type Idea = Tables<'ideas'> & {
@@ -215,14 +215,14 @@ export function IdeasContent({
       setIdeas(prev => prev.filter(i => i.id !== idea.id))
       
       toast({
-        title: 'Idée supprimée',
-        description: 'L\'idée a été supprimée avec succès.',
+        title: 'Idea deleted',
+        description: 'The idea has been deleted successfully.',
       })
     } catch (error) {
       console.error(error)
       toast({
-        title: 'Erreur',
-        description: 'Impossible de supprimer l\'idée.',
+        title: 'Error',
+        description: 'Unable to delete the idea.',
         variant: 'destructive',
       })
     }
@@ -248,8 +248,8 @@ export function IdeasContent({
     } catch (error) {
       console.error(error)
       toast({
-        title: 'Erreur',
-        description: 'Impossible de mettre à jour le statut.',
+        title: 'Error',
+        description: 'Unable to update status.',
         variant: 'destructive',
       })
     }
@@ -260,14 +260,14 @@ export function IdeasContent({
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Idées</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Ideas</h1>
           <p className="text-muted-foreground mt-1">
-            Gérez toutes vos idées de contenu
+            Manage all your content ideas
           </p>
         </div>
         <Button onClick={() => router.push('/ideas/new')} className="gap-2">
           <Plus className="h-4 w-4" />
-          Nouvelle idée
+          New Idea
         </Button>
       </div>
 
@@ -304,7 +304,7 @@ export function IdeasContent({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Rechercher une idée..."
+            placeholder="Search ideas..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -314,10 +314,10 @@ export function IdeasContent({
         <Select value={filterPillar} onValueChange={setFilterPillar}>
           <SelectTrigger className="w-full sm:w-[160px]">
             <Tag className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Pilier" />
+            <SelectValue placeholder="Pillar" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous piliers</SelectItem>
+            <SelectItem value="all">All Pillars</SelectItem>
             {pillars.map(pillar => (
               <SelectItem key={pillar.id} value={pillar.id}>
                 <div className="flex items-center gap-2">
@@ -335,10 +335,10 @@ export function IdeasContent({
         <Select value={filterCategory} onValueChange={setFilterCategory}>
           <SelectTrigger className="w-full sm:w-[160px]">
             <Folder className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Catégorie" />
+            <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Toutes catégories</SelectItem>
+            <SelectItem value="all">All Categories</SelectItem>
             {categories.map(cat => (
               <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
             ))}
@@ -351,9 +351,9 @@ export function IdeasContent({
             <SelectValue placeholder="Trier" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="newest">Plus récent</SelectItem>
-            <SelectItem value="oldest">Plus ancien</SelectItem>
-            <SelectItem value="priority">Priorité</SelectItem>
+            <SelectItem value="newest">Newest</SelectItem>
+            <SelectItem value="oldest">Oldest</SelectItem>
+            <SelectItem value="priority">Priority</SelectItem>
           </SelectContent>
         </Select>
 
@@ -389,18 +389,18 @@ export function IdeasContent({
           </div>
           <h3 className="text-lg font-medium mb-2">
             {searchQuery || filterStatus !== 'all' || filterPillar !== 'all' || filterCategory !== 'all'
-              ? 'Aucune idée trouvée'
-              : 'Aucune idée'}
+              ? 'No ideas found'
+              : 'No ideas yet'}
           </h3>
           <p className="text-muted-foreground max-w-sm mb-4">
             {searchQuery || filterStatus !== 'all' || filterPillar !== 'all' || filterCategory !== 'all'
-              ? 'Essayez de modifier vos filtres.'
-              : 'Créez votre première idée de contenu.'}
+              ? 'Try adjusting your filters.'
+              : 'Create your first content idea.'}
           </p>
           {!searchQuery && filterStatus === 'all' && (
             <Button onClick={() => router.push('/ideas/new')}>
               <Plus className="h-4 w-4 mr-2" />
-              Créer une idée
+              Create Idea
             </Button>
           )}
         </motion.div>
@@ -448,6 +448,7 @@ function IdeaCard({ idea, index, onDelete, onStatusChange }: IdeaCardProps) {
   const status = statusConfig[idea.status as IdeaStatus]
   const StatusIcon = status.icon
   const priority = priorityConfig[idea.priority]
+  const router = useRouter()
 
   return (
     <motion.div
@@ -456,102 +457,97 @@ function IdeaCard({ idea, index, onDelete, onStatusChange }: IdeaCardProps) {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ delay: index * 0.03 }}
-      className="group bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-all"
+      className="group bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer"
+      onClick={() => router.push(`/ideas/${idea.id}`)}
     >
-      <Link href={`/ideas/${idea.id}`}>
-        <div className="p-4 space-y-3">
-          {/* Header */}
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <h3 className="font-medium line-clamp-2 group-hover:text-primary transition-colors">
-                {idea.title}
-              </h3>
-            </div>
-            <div onClick={(e) => e.preventDefault()}>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    size="icon" 
-                    variant="ghost" 
-                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <Link href={`/ideas/${idea.id}`}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href={`/ideas/${idea.id}`}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem 
-                    className="text-red-600"
-                    onClick={() => onDelete(idea)}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+      <div className="p-4 space-y-3">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium line-clamp-2 group-hover:text-primary transition-colors">
+              {idea.title}
+            </h3>
           </div>
-
-          {/* Hook */}
-          {idea.hook && (
-            <p className="text-sm text-muted-foreground line-clamp-2">
-              {idea.hook}
-            </p>
-          )}
-
-          {/* Tags */}
-          <div className="flex flex-wrap gap-1.5">
-            {idea.content_pillar && (
-              <Badge 
-                variant="secondary" 
-                className="text-xs"
-                style={{ 
-                  backgroundColor: `${idea.content_pillar.color}20`,
-                  color: idea.content_pillar.color,
-                }}
-              >
-                {idea.content_pillar.name}
-              </Badge>
-            )}
-            {idea.category && (
-              <Badge variant="outline" className="text-xs">
-                {idea.category.name}
-              </Badge>
-            )}
-            {idea.content_type && (
-              <Badge variant="outline" className="text-xs">
-                {idea.content_type.name}
-              </Badge>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between pt-2 border-t">
-            <Badge className={cn("gap-1", status.bgColor, status.color)}>
-              <StatusIcon className="h-3 w-3" />
-              {status.label}
-            </Badge>
-            {priority && (
-              <div className="flex items-center gap-1.5">
-                <div className={cn("w-2 h-2 rounded-full", priority.color)} />
-                <span className="text-xs text-muted-foreground">{priority.label}</span>
-              </div>
-            )}
+          <div onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => router.push(`/ideas/${idea.id}`)}>
+                  <Eye className="h-4 w-4 mr-2" />
+                  View
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push(`/ideas/${idea.id}`)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  className="text-red-600"
+                  onClick={() => onDelete(idea)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
-      </Link>
+
+        {/* Hook */}
+        {idea.hook && (
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {idea.hook}
+          </p>
+        )}
+
+        {/* Tags */}
+        <div className="flex flex-wrap gap-1.5">
+          {idea.content_pillar && (
+            <Badge 
+              variant="secondary" 
+              className="text-xs"
+              style={{ 
+                backgroundColor: `${idea.content_pillar.color}20`,
+                color: idea.content_pillar.color,
+              }}
+            >
+              {idea.content_pillar.name}
+            </Badge>
+          )}
+          {idea.category && (
+            <Badge variant="outline" className="text-xs">
+              {idea.category.name}
+            </Badge>
+          )}
+          {idea.content_type && (
+            <Badge variant="outline" className="text-xs">
+              {idea.content_type.name}
+            </Badge>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-2 border-t">
+          <Badge className={cn("gap-1", status.bgColor, status.color)}>
+            <StatusIcon className="h-3 w-3" />
+            {status.label}
+          </Badge>
+          {priority && (
+            <div className="flex items-center gap-1.5">
+              <div className={cn("w-2 h-2 rounded-full", priority.color)} />
+              <span className="text-xs text-muted-foreground">{priority.label}</span>
+            </div>
+          )}
+        </div>
+      </div>
     </motion.div>
   )
 }
@@ -560,6 +556,7 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
   const status = statusConfig[idea.status as IdeaStatus]
   const StatusIcon = status.icon
   const priority = priorityConfig[idea.priority]
+  const router = useRouter()
 
   return (
     <motion.div
@@ -568,7 +565,8 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
       transition={{ delay: index * 0.02 }}
-      className="group bg-card border rounded-lg p-4 hover:shadow-md transition-all"
+      className="group bg-card border rounded-lg p-4 hover:shadow-md transition-all cursor-pointer"
+      onClick={() => router.push(`/ideas/${idea.id}`)}
     >
       <div className="flex items-center gap-4">
         {/* Status Icon */}
@@ -578,9 +576,7 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <Link href={`/ideas/${idea.id}`} className="hover:underline">
-            <h3 className="font-medium truncate">{idea.title}</h3>
-          </Link>
+          <h3 className="font-medium truncate hover:underline">{idea.title}</h3>
           <div className="flex items-center gap-3 mt-1">
             {idea.content_pillar && (
               <span 
@@ -596,7 +592,7 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
               </span>
             )}
             <span className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(idea.created_at), { addSuffix: true, locale: fr })}
+              {formatDistanceToNow(new Date(idea.created_at), { addSuffix: true, locale: enUS })}
             </span>
           </div>
         </div>
@@ -610,17 +606,15 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
         )}
 
         {/* Actions */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
           <Button 
             size="sm" 
             variant="ghost" 
-            asChild
             className="hidden sm:inline-flex"
+            onClick={() => router.push(`/ideas/${idea.id}`)}
           >
-            <Link href={`/ideas/${idea.id}`}>
-              Voir
-              <ArrowUpRight className="h-3.5 w-3.5 ml-1" />
-            </Link>
+            View
+            <ArrowUpRight className="h-3.5 w-3.5 ml-1" />
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -629,17 +623,13 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link href={`/ideas/${idea.id}`}>
-                  <Eye className="h-4 w-4 mr-2" />
-                  Voir
-                </Link>
+              <DropdownMenuItem onClick={() => router.push(`/ideas/${idea.id}`)}>
+                <Eye className="h-4 w-4 mr-2" />
+                View
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/ideas/${idea.id}`}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Modifier
-                </Link>
+              <DropdownMenuItem onClick={() => router.push(`/ideas/${idea.id}`)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
@@ -647,7 +637,7 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
                 onClick={() => onDelete(idea)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Supprimer
+                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

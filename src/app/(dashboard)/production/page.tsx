@@ -8,12 +8,8 @@ export default async function ProductionPage() {
 
   if (!user) return null
 
-  const today = new Date()
-  const todayStr = format(today, 'yyyy-MM-dd')
-  const weekEndStr = format(addDays(today, 7), 'yyyy-MM-dd')
-
-  // Fetch ideas scheduled for filming today or planned status
-  const { data: filmingIdeas } = await supabase
+  // Fetch ideas that are ready for production (scripted, planned, to_film, filmed, editing)
+  const { data: productionIdeas } = await supabase
     .from('ideas')
     .select(`
       *,
@@ -23,32 +19,8 @@ export default async function ProductionPage() {
       filming_setup:filming_setups(id, name, description, checklist)
     `)
     .eq('user_id', user.id)
-    .in('status', ['planned', 'filmed'])
-    .gte('scheduled_date', todayStr)
-    .lte('scheduled_date', weekEndStr)
-    .order('scheduled_date')
-
-  // Fetch all planner items for filming this week
-  const { data: plannerItems } = await supabase
-    .from('planner_items')
-    .select(`
-      *,
-      idea:ideas(
-        id,
-        title,
-        hook,
-        status,
-        priority,
-        content_pillar:content_pillars(id, name, color),
-        filming_setup:filming_setups(id, name, description, checklist)
-      )
-    `)
-    .eq('user_id', user.id)
-    .eq('item_type', 'filming')
-    .gte('date', todayStr)
-    .lte('date', weekEndStr)
-    .order('date')
-    .order('start_time')
+    .in('status', ['scripted', 'planned', 'to_film', 'filmed', 'editing'])
+    .order('updated_at', { ascending: false })
 
   // Fetch filming setups
   const { data: filmingSetups } = await supabase
@@ -57,10 +29,18 @@ export default async function ProductionPage() {
     .eq('user_id', user.id)
     .order('name')
 
+  // Fetch hashtags for the user
+  const { data: hashtags } = await supabase
+    .from('hashtags')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('name')
+
   return (
     <ProductionContent 
-      plannerItems={plannerItems || []}
+      productionIdeas={productionIdeas || []}
       filmingSetups={filmingSetups || []}
+      hashtags={hashtags || []}
       userId={user.id}
     />
   )

@@ -84,7 +84,7 @@ interface EmailHubContentProps {
 }
 
 const providerConfig = {
-  gmail: { label: 'Gmail', color: 'bg-red-500', icon: '📧' },
+  gmail: { label: 'Gmail', color: 'bg-red-500', icon: 'mail' },
   imap: { label: 'IMAP', color: 'bg-blue-500', icon: '✉️' },
 }
 
@@ -477,7 +477,7 @@ export function EmailHubContent({
                 setAccountForm(prev => ({ ...prev, provider: 'gmail' }))
                 setIsAccountDialogOpen(true)
               }}>
-                <span className="mr-2">📧</span>
+                <Mail className="h-4 w-4 mr-2" />
                 Connect Gmail
               </Button>
               <Button variant="outline" onClick={() => {
@@ -822,7 +822,7 @@ export function EmailHubContent({
                 <SelectContent>
                   <SelectItem value="gmail">
                     <div className="flex items-center gap-2">
-                      <span>📧</span> Gmail (OAuth)
+                      <Mail className="h-4 w-4 mr-2" /> Gmail (OAuth)
                     </div>
                   </SelectItem>
                   <SelectItem value="imap">

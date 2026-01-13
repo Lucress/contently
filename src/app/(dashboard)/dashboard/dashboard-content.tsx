@@ -129,7 +129,7 @@ export function DashboardContent({
   // Default content types if none provided
   const defaultContentTypes: ContentType[] = [
     { id: 'short', name: language === 'fr' ? 'Short/Reel' : 'Short/Reel', icon: '📱', color: '#ec4899' },
-    { id: 'video', name: language === 'fr' ? 'Vidéo longue' : 'Long Video', icon: '🎬', color: '#3b82f6' },
+    { id: 'video', name: language === 'fr' ? 'Vidéo longue' : 'Long Video', icon: 'video', color: '#3b82f6' },
     { id: 'live', name: 'Live', icon: '🔴', color: '#ef4444' },
     { id: 'story', name: 'Story', icon: '⭐', color: '#f59e0b' },
     { id: 'post', name: 'Post', icon: '📷', color: '#10b981' },

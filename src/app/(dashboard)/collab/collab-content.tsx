@@ -933,14 +933,14 @@ export function CollabContent({
             <div className="space-y-2">
               <Label>Brand Partner</Label>
               <Select 
-                value={dealForm.brand_id} 
-                onValueChange={(v) => setDealForm(prev => ({ ...prev, brand_id: v }))}
+                value={dealForm.brand_id || 'none'} 
+                onValueChange={(v) => setDealForm(prev => ({ ...prev, brand_id: v === 'none' ? '' : v }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a brand..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {brands.map(brand => (
                     <SelectItem key={brand.id} value={brand.id}>{brand.name}</SelectItem>
                   ))}

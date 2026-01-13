@@ -32,7 +32,7 @@ export default async function PlannerPage() {
     .lte('date', rangeEnd.toISOString().split('T')[0])
     .order('date')
 
-  // Fetch unscheduled ideas (draft or scripted)
+  // Fetch unscheduled ideas (draft or scripted) for filming
   const { data: unscheduledIdeas } = await supabase
     .from('ideas')
     .select(`
@@ -49,10 +49,29 @@ export default async function PlannerPage() {
     .order('created_at', { ascending: false })
     .limit(20)
 
+  // Fetch filmed ideas ready to schedule for posting
+  const { data: filmedIdeas } = await supabase
+    .from('ideas')
+    .select(`
+      id,
+      title,
+      hook,
+      status,
+      priority,
+      filmed_at,
+      content_pillar:content_pillars(id, name, color)
+    `)
+    .eq('user_id', user.id)
+    .in('status', ['filmed', 'editing'])
+    .is('publish_date', null)
+    .order('filmed_at', { ascending: false })
+    .limit(20)
+
   return (
     <PlannerContent 
       plannerItems={plannerItems || []}
       unscheduledIdeas={unscheduledIdeas || []}
+      filmedIdeas={filmedIdeas || []}
       userId={user.id}
     />
   )

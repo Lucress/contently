@@ -126,7 +126,7 @@ export default function LandingPage() {
             </div>
             
             <p className="text-sm text-muted-foreground mt-4">
-              ✨ Free plan available • Set up in 2 minutes
+              Free plan available - Set up in 2 minutes
             </p>
           </div>
         </div>
@@ -243,7 +243,7 @@ export default function LandingPage() {
               <div className="h-12 w-12 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center mb-4">
                 <Lightbulb className="h-6 w-6 text-yellow-600" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">💡 Idea Bank</h3>
+              <h3 className="text-lg font-semibold mb-2">Idea Bank</h3>
               <p className="text-muted-foreground text-sm">
                 Save inspiration from TikTok, Instagram, YouTube. Turn ideas into content with one click.
               </p>
@@ -254,7 +254,7 @@ export default function LandingPage() {
               <div className="h-12 w-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mb-4">
                 <Video className="h-6 w-6 text-purple-600" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">📝 Script Writing</h3>
+              <h3 className="text-lg font-semibold mb-2">Script Writing</h3>
               <p className="text-muted-foreground text-sm">
                 Write video scripts with hooks, main points, and CTAs. Track filming status from draft to published.
               </p>
@@ -265,7 +265,7 @@ export default function LandingPage() {
               <div className="h-12 w-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-4">
                 <Calendar className="h-6 w-6 text-blue-600" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">📅 Content Calendar</h3>
+              <h3 className="text-lg font-semibold mb-2">Content Calendar</h3>
               <p className="text-muted-foreground text-sm">
                 Plan your content weeks ahead. Drag and drop to reschedule. Never miss a posting day.
               </p>
@@ -276,7 +276,7 @@ export default function LandingPage() {
               <div className="h-12 w-12 rounded-xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center mb-4">
                 <Users className="h-6 w-6 text-pink-600" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">🤝 Brand Partnerships</h3>
+              <h3 className="text-lg font-semibold mb-2">Brand Partnerships</h3>
               <p className="text-muted-foreground text-sm">
                 Manage sponsorships and collaborations. Track deals from pitch to payment. See all your partners.
               </p>
@@ -287,7 +287,7 @@ export default function LandingPage() {
               <div className="h-12 w-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-4">
                 <DollarSign className="h-6 w-6 text-green-600" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">💰 Revenue Tracking</h3>
+              <h3 className="text-lg font-semibold mb-2">Revenue Tracking</h3>
               <p className="text-muted-foreground text-sm">
                 See all your income in one place. Track sponsorships, AdSense, affiliate earnings. Export for taxes.
               </p>
@@ -298,7 +298,7 @@ export default function LandingPage() {
               <div className="h-12 w-12 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mb-4">
                 <MessageSquare className="h-6 w-6 text-orange-600" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">📧 Customer Inbox</h3>
+              <h3 className="text-lg font-semibold mb-2">Customer Inbox</h3>
               <p className="text-muted-foreground text-sm">
                 Handle collab requests and customer emails. Use templates for quick replies. Stay organized.
               </p>

@@ -204,8 +204,8 @@ export function NewIdeaForm({
     } catch (error) {
       console.error(error)
       toast({
-        title: 'Erreur',
-        description: 'Impossible de créer l\'idée.',
+        title: 'Error',
+        description: 'Unable to create the idea.',
         variant: 'destructive',
       })
     } finally {
@@ -224,7 +224,7 @@ export function NewIdeaForm({
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Nouvelle idée</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">New Idea</h1>
             {fromInspiration && (
               <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
                 <Sparkles className="h-3.5 w-3.5" />
@@ -235,7 +235,7 @@ export function NewIdeaForm({
         </div>
         <Button onClick={handleSubmit} disabled={isLoading} className="gap-2">
           <Save className="h-4 w-4" />
-          {isLoading ? 'Création...' : 'Créer l\'idée'}
+          {isLoading ? 'Creating...' : 'Create Idea'}
         </Button>
       </div>
 
@@ -253,21 +253,21 @@ export function NewIdeaForm({
                   className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full"
                 >
                   <Lightbulb className="h-4 w-4 mr-2" />
-                  Essentiel
+                  Essentials
                 </TabsTrigger>
                 <TabsTrigger 
                   value="details"
                   className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full"
                 >
                   <FileText className="h-4 w-4 mr-2" />
-                  Détails
+                  Details
                 </TabsTrigger>
                 <TabsTrigger 
                   value="organization"
                   className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full"
                 >
                   <Folder className="h-4 w-4 mr-2" />
-                  Organisation
+                  Organization
                 </TabsTrigger>
               </TabsList>
             </div>
