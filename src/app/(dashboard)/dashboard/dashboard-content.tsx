@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Lightbulb,
   Sparkles,
@@ -14,20 +15,22 @@ import {
   Clock,
   TrendingUp,
   Calendar,
-  Copy,
-  Hash,
-  Layers,
-  FileVideo,
-  Settings,
+  X,
+  Edit3,
+  Trash2,
+  Save,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { formatCurrency, formatDate, STATUS_LABELS, DEAL_STATUS_LABELS } from '@/lib/utils'
 import type { Tables } from '@/types/database'
 import { useLanguage } from '@/lib/i18n'
 import { useToast } from '@/components/ui/use-toast'
+import { createPillar, updatePillar, deletePillar } from './actions'
 
 interface ContentPillar {
   id: string
@@ -36,21 +39,6 @@ interface ContentPillar {
   color: string
   icon: string
   ideaCount: number
-}
-
-interface Hashtag {
-  id: string
-  tag: string
-  usage_count: number
-  hashtag_groups: { id: string; name: string; color: string } | null
-}
-
-interface ContentType {
-  id: string
-  name: string
-  description: string | null
-  icon: string
-  color: string
 }
 
 interface DashboardContentProps {
@@ -71,8 +59,6 @@ interface DashboardContentProps {
   tasks: Tables<'tasks'>[]
   ideasByStatus: { status: string; count: number; color: string }[]
   contentPillars?: ContentPillar[]
-  hashtags?: Hashtag[]
-  contentTypes?: ContentType[]
 }
 
 const container = {
@@ -98,12 +84,22 @@ export function DashboardContent({
   deals,
   tasks,
   ideasByStatus,
-  contentPillars = [],
-  hashtags = [],
-  contentTypes = [],
+  contentPillars: initialPillars = [],
 }: DashboardContentProps) {
   const { t, language } = useLanguage()
   const { toast } = useToast()
+  
+  // Pillar state management
+  const [pillars, setPillars] = useState<ContentPillar[]>(initialPillars)
+  const [isAddingPillar, setIsAddingPillar] = useState(false)
+  const [editingPillarId, setEditingPillarId] = useState<string | null>(null)
+  const [newPillar, setNewPillar] = useState({ name: '', description: '', color: '#8b5cf6' })
+  const [editPillar, setEditPillar] = useState({ name: '', description: '', color: '' })
+  const [isLoading, setIsLoading] = useState(false)
+
+  const pillarColors = [
+    '#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#84cc16'
+  ]
 
   const greeting = () => {
     const hour = new Date().getHours()
@@ -114,22 +110,93 @@ export function DashboardContent({
 
   const firstName = profile?.full_name?.split(' ')[0] || (language === 'fr' ? 'Créateur' : 'Creator')
 
-  const copyHashtags = (tags: string[]) => {
-    const text = tags.map(t => `#${t}`).join(' ')
-    navigator.clipboard.writeText(text)
-    toast({
-      title: language === 'fr' ? 'Hashtags copiés!' : 'Hashtags copied!',
-      description: language === 'fr' ? 'Les hashtags ont été copiés dans le presse-papiers.' : 'Hashtags have been copied to clipboard.',
-    })
+  // Pillar CRUD operations using server actions
+  const handleAddPillar = async () => {
+    if (!newPillar.name.trim()) return
+    setIsLoading(true)
+    
+    try {
+      const result = await createPillar({
+        name: newPillar.name,
+        description: newPillar.description || null,
+        color: newPillar.color,
+      })
+
+      if (result.error) throw new Error(result.error)
+
+      if (result.data) {
+        setPillars([...pillars, { ...result.data, ideaCount: 0 }])
+      }
+      setNewPillar({ name: '', description: '', color: '#8b5cf6' })
+      setIsAddingPillar(false)
+      toast({
+        title: language === 'fr' ? 'Pilier créé!' : 'Pillar created!',
+        description: language === 'fr' ? 'Votre nouveau pilier a été ajouté.' : 'Your new pillar has been added.',
+      })
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de créer le pilier.' : 'Could not create pillar.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const copyAllHashtags = () => {
-    const text = hashtags.map(h => `#${h.tag}`).join(' ')
-    navigator.clipboard.writeText(text)
-    toast({
-      title: language === 'fr' ? 'Hashtags copiés!' : 'Hashtags copied!',
-      description: language === 'fr' ? `${hashtags.length} hashtags copiés.` : `${hashtags.length} hashtags copied.`,
-    })
+  const handleEditPillar = async (id: string) => {
+    if (!editPillar.name.trim()) return
+    setIsLoading(true)
+
+    try {
+      const result = await updatePillar(id, {
+        name: editPillar.name,
+        description: editPillar.description || null,
+        color: editPillar.color,
+      })
+
+      if (result.error) throw new Error(result.error)
+
+      setPillars(pillars.map(p => p.id === id ? { ...p, ...editPillar } : p))
+      setEditingPillarId(null)
+      toast({
+        title: language === 'fr' ? 'Pilier mis à jour!' : 'Pillar updated!',
+      })
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        description: language === 'fr' ? 'Impossible de modifier le pilier.' : 'Could not update pillar.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDeletePillar = async (id: string) => {
+    setIsLoading(true)
+
+    try {
+      const result = await deletePillar(id)
+      if (result.error) throw new Error(result.error)
+
+      setPillars(pillars.filter(p => p.id !== id))
+      toast({
+        title: language === 'fr' ? 'Pilier supprimé!' : 'Pillar deleted!',
+      })
+    } catch (error) {
+      toast({
+        title: language === 'fr' ? 'Erreur' : 'Error',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const startEditing = (pillar: ContentPillar) => {
+    setEditingPillarId(pillar.id)
+    setEditPillar({ name: pillar.name, description: pillar.description || '', color: pillar.color })
   }
 
   return (
@@ -165,173 +232,245 @@ export function DashboardContent({
         </div>
       </motion.div>
 
-      {/* Content Pillars Section */}
+      {/* Content Pillars Section - Clean & Self-contained */}
       <motion.div variants={item}>
-        <Card className="border-brand-200 dark:border-brand-800">
-          <CardHeader className="pb-3">
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-4 bg-gradient-to-r from-brand-50 to-white dark:from-brand-950/30 dark:to-background">
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-lg bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
-                  <Layers className="h-4 w-4 text-brand-600" />
-                </div>
-                {language === 'fr' ? 'Piliers de Contenu' : 'Content Pillars'}
-              </CardTitle>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/settings">
-                  <Settings className="w-4 h-4 mr-1" />
-                  {language === 'fr' ? 'Gérer' : 'Manage'}
-                </Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {contentPillars.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {contentPillars.map((pillar) => (
-                  <Link
-                    key={pillar.id}
-                    href={`/ideas?pillar=${pillar.id}`}
-                    className="block p-4 rounded-xl border bg-card hover:shadow-soft hover:border-brand-300 dark:hover:border-brand-700 transition-all"
-                    style={{ borderLeftColor: pillar.color, borderLeftWidth: '4px' }}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-sm">{pillar.name}</h3>
-                      <Badge variant="secondary" className="text-xs">
-                        {pillar.ideaCount} {language === 'fr' ? 'idées' : 'ideas'}
-                      </Badge>
-                    </div>
-                    {pillar.description && (
-                      <p className="text-xs text-muted-foreground line-clamp-2">
-                        {pillar.description}
-                      </p>
-                    )}
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <Layers className="h-10 w-10 text-brand-300 mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground mb-3">
+              <div>
+                <CardTitle className="text-lg">
+                  {language === 'fr' ? 'Mes Piliers de Contenu' : 'My Content Pillars'}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
                   {language === 'fr' 
-                    ? 'Créez des piliers pour organiser vos idées de contenu'
-                    : 'Create pillars to organize your content ideas'}
+                    ? 'Organisez vos idées par thématique' 
+                    : 'Organize your ideas by theme'}
                 </p>
-                <Button variant="outline" size="sm" asChild className="border-brand-200 hover:bg-brand-50">
-                  <Link href="/settings">
-                    <Plus className="w-4 h-4 mr-1" />
-                    {language === 'fr' ? 'Créer un pilier' : 'Create pillar'}
-                  </Link>
-                </Button>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Hashtags & Content Types Row */}
-      <motion.div variants={item} className="grid gap-6 md:grid-cols-2">
-        {/* Favorite Hashtags */}
-        <Card className="border-brand-200 dark:border-brand-800">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Hash className="h-4 w-4 text-brand-500" />
-                {language === 'fr' ? 'Hashtags Favoris' : 'Favorite Hashtags'}
-              </CardTitle>
-              {hashtags.length > 0 && (
-                <Button variant="ghost" size="sm" onClick={copyAllHashtags}>
-                  <Copy className="w-3 h-3 mr-1" />
-                  {language === 'fr' ? 'Copier tout' : 'Copy all'}
+              {!isAddingPillar && (
+                <Button 
+                  onClick={() => setIsAddingPillar(true)}
+                  size="sm"
+                  className="bg-brand-600 hover:bg-brand-700"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  {language === 'fr' ? 'Ajouter' : 'Add'}
                 </Button>
               )}
             </div>
           </CardHeader>
-          <CardContent>
-            {hashtags.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {hashtags.slice(0, 15).map((hashtag) => (
-                  <Badge
-                    key={hashtag.id}
-                    variant="secondary"
-                    className="text-xs font-normal cursor-pointer hover:bg-brand-100 dark:hover:bg-brand-900/30"
-                    style={hashtag.hashtag_groups ? { borderColor: hashtag.hashtag_groups.color, borderWidth: '1px' } : undefined}
-                    onClick={() => copyHashtags([hashtag.tag])}
-                  >
-                    #{hashtag.tag}
-                    <span className="ml-1 text-muted-foreground">({hashtag.usage_count})</span>
-                  </Badge>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <Hash className="h-8 w-8 text-brand-300 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground mb-2">
-                  {language === 'fr' ? 'Ajoutez vos hashtags favoris' : 'Add your favorite hashtags'}
-                </p>
-                <Button variant="outline" size="sm" asChild className="border-brand-200 hover:bg-brand-50">
-                  <Link href="/settings">
-                    <Plus className="w-4 h-4 mr-1" />
-                    {language === 'fr' ? 'Ajouter' : 'Add'}
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Content Types */}
-        <Card className="border-brand-200 dark:border-brand-800">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <FileVideo className="h-4 w-4 text-brand-500" />
-                {language === 'fr' ? 'Types de Contenu' : 'Content Types'}
-              </CardTitle>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/settings">
-                  <Settings className="w-3 h-3 mr-1" />
-                  {language === 'fr' ? 'Gérer' : 'Manage'}
-                </Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {contentTypes.length > 0 ? (
-              <div className="grid gap-2">
-                {contentTypes.slice(0, 5).map((type) => (
-                  <div
-                    key={type.id}
-                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
-                  >
-                    <div
-                      className="h-8 w-8 rounded-lg flex items-center justify-center text-white text-sm"
-                      style={{ backgroundColor: type.color }}
-                    >
-                      {type.icon || '📹'}
+          <CardContent className="pt-4">
+            <AnimatePresence mode="popLayout">
+              {/* Add new pillar form */}
+              {isAddingPillar && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mb-4 p-4 rounded-xl border-2 border-dashed border-brand-300 bg-brand-50/50 dark:bg-brand-950/20"
+                >
+                  <div className="space-y-3">
+                    <Input
+                      placeholder={language === 'fr' ? 'Nom du pilier...' : 'Pillar name...'}
+                      value={newPillar.name}
+                      onChange={(e) => setNewPillar({ ...newPillar, name: e.target.value })}
+                      className="border-brand-200 focus:border-brand-400"
+                    />
+                    <Textarea
+                      placeholder={language === 'fr' ? 'Description (optionnel)' : 'Description (optional)'}
+                      value={newPillar.description}
+                      onChange={(e) => setNewPillar({ ...newPillar, description: e.target.value })}
+                      rows={2}
+                      className="border-brand-200 focus:border-brand-400 resize-none"
+                    />
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">
+                        {language === 'fr' ? 'Couleur:' : 'Color:'}
+                      </span>
+                      <div className="flex gap-1">
+                        {pillarColors.map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            onClick={() => setNewPillar({ ...newPillar, color })}
+                            className={`w-6 h-6 rounded-full transition-transform hover:scale-110 ${
+                              newPillar.color === color ? 'ring-2 ring-offset-2 ring-brand-500' : ''
+                            }`}
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{type.name}</p>
-                      {type.description && (
-                        <p className="text-xs text-muted-foreground truncate">{type.description}</p>
-                      )}
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        onClick={handleAddPillar}
+                        disabled={isLoading || !newPillar.name.trim()}
+                        size="sm"
+                        className="bg-brand-600 hover:bg-brand-700"
+                      >
+                        <Save className="w-4 h-4 mr-1" />
+                        {language === 'fr' ? 'Créer' : 'Create'}
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setIsAddingPillar(false)
+                          setNewPillar({ name: '', description: '', color: '#8b5cf6' })
+                        }}
+                        variant="ghost"
+                        size="sm"
+                      >
+                        <X className="w-4 h-4 mr-1" />
+                        {language === 'fr' ? 'Annuler' : 'Cancel'}
+                      </Button>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <FileVideo className="h-8 w-8 text-brand-300 mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground mb-2">
-                  {language === 'fr' ? 'Définissez vos formats de contenu' : 'Define your content formats'}
-                </p>
-                <Button variant="outline" size="sm" asChild className="border-brand-200 hover:bg-brand-50">
-                  <Link href="/settings">
-                    <Plus className="w-4 h-4 mr-1" />
-                    {language === 'fr' ? 'Ajouter' : 'Add'}
-                  </Link>
-                </Button>
-              </div>
-            )}
+                </motion.div>
+              )}
+
+              {/* Pillars grid */}
+              {pillars.length > 0 ? (
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {pillars.map((pillar, index) => (
+                    <motion.div
+                      key={pillar.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      {editingPillarId === pillar.id ? (
+                        /* Edit mode */
+                        <div className="p-4 rounded-xl border-2 border-brand-400 bg-white dark:bg-background">
+                          <div className="space-y-3">
+                            <Input
+                              value={editPillar.name}
+                              onChange={(e) => setEditPillar({ ...editPillar, name: e.target.value })}
+                              className="border-brand-200"
+                            />
+                            <Textarea
+                              value={editPillar.description}
+                              onChange={(e) => setEditPillar({ ...editPillar, description: e.target.value })}
+                              rows={2}
+                              className="border-brand-200 resize-none"
+                            />
+                            <div className="flex gap-1">
+                              {pillarColors.map((color) => (
+                                <button
+                                  key={color}
+                                  type="button"
+                                  onClick={() => setEditPillar({ ...editPillar, color })}
+                                  className={`w-5 h-5 rounded-full transition-transform hover:scale-110 ${
+                                    editPillar.color === color ? 'ring-2 ring-offset-1 ring-brand-500' : ''
+                                  }`}
+                                  style={{ backgroundColor: color }}
+                                />
+                              ))}
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={() => handleEditPillar(pillar.id)}
+                                disabled={isLoading}
+                                size="sm"
+                                className="bg-brand-600 hover:bg-brand-700"
+                              >
+                                <Save className="w-3 h-3 mr-1" />
+                                {language === 'fr' ? 'Sauver' : 'Save'}
+                              </Button>
+                              <Button
+                                onClick={() => setEditingPillarId(null)}
+                                variant="ghost"
+                                size="sm"
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Display mode */
+                        <div
+                          className="group relative p-4 rounded-xl border bg-white dark:bg-background hover:shadow-lg transition-all duration-300 cursor-pointer"
+                          style={{ borderLeftWidth: '4px', borderLeftColor: pillar.color }}
+                        >
+                          <Link href={`/ideas?pillar=${pillar.id}`} className="block">
+                            <div className="flex items-start justify-between mb-2">
+                              <div
+                                className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-medium"
+                                style={{ backgroundColor: pillar.color }}
+                              >
+                                {pillar.name.charAt(0).toUpperCase()}
+                              </div>
+                              <Badge 
+                                variant="secondary" 
+                                className="text-xs bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"
+                              >
+                                {pillar.ideaCount} {language === 'fr' ? 'idées' : 'ideas'}
+                              </Badge>
+                            </div>
+                            <h3 className="font-semibold text-sm mb-1">{pillar.name}</h3>
+                            {pillar.description && (
+                              <p className="text-xs text-muted-foreground line-clamp-2">
+                                {pillar.description}
+                              </p>
+                            )}
+                          </Link>
+                          
+                          {/* Action buttons - shown on hover */}
+                          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                startEditing(pillar)
+                              }}
+                              className="p-1.5 rounded-lg bg-white dark:bg-background shadow-sm border hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+                            >
+                              <Edit3 className="w-3 h-3 text-muted-foreground" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                handleDeletePillar(pillar.id)
+                              }}
+                              className="p-1.5 rounded-lg bg-white dark:bg-background shadow-sm border hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            >
+                              <Trash2 className="w-3 h-3 text-muted-foreground hover:text-red-500" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              ) : !isAddingPillar && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-8"
+                >
+                  <div className="w-16 h-16 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center mx-auto mb-4">
+                    <Lightbulb className="w-8 h-8 text-brand-500" />
+                  </div>
+                  <h3 className="font-medium mb-2">
+                    {language === 'fr' ? 'Créez votre premier pilier' : 'Create your first pillar'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
+                    {language === 'fr' 
+                      ? 'Les piliers vous aident à organiser vos idées de contenu par thème (ex: Tutoriels, Vlogs, Reviews...)' 
+                      : 'Pillars help you organize your content ideas by theme (e.g., Tutorials, Vlogs, Reviews...)'}
+                  </p>
+                  <Button 
+                    onClick={() => setIsAddingPillar(true)}
+                    className="bg-brand-600 hover:bg-brand-700"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    {language === 'fr' ? 'Créer un pilier' : 'Create a pillar'}
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </CardContent>
         </Card>
       </motion.div>
