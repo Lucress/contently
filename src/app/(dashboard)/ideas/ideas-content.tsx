@@ -480,6 +480,8 @@ function IdeaCard({ idea, index, onDelete, onStatusChange }: IdeaCardProps) {
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={(e) => {
                 e.stopPropagation()
+                e.preventDefault()
+                console.log('[IdeaCard] View clicked, idea:', { id: idea.id, title: idea.title })
                 router.push(`/ideas/${idea.id}`)
               }}>
                 <Eye className="h-4 w-4 mr-2" />
@@ -487,6 +489,8 @@ function IdeaCard({ idea, index, onDelete, onStatusChange }: IdeaCardProps) {
               </DropdownMenuItem>
               <DropdownMenuItem onClick={(e) => {
                 e.stopPropagation()
+                e.preventDefault()
+                console.log('[IdeaCard] Edit clicked, idea:', { id: idea.id, title: idea.title })
                 router.push(`/ideas/${idea.id}`)
               }}>
                 <Edit className="h-4 w-4 mr-2" />
@@ -497,6 +501,8 @@ function IdeaCard({ idea, index, onDelete, onStatusChange }: IdeaCardProps) {
                 className="text-red-600"
                 onClick={(e) => {
                   e.stopPropagation()
+                  e.preventDefault()
+                  console.log('[IdeaCard] Delete clicked, idea:', { id: idea.id, title: idea.title })
                   onDelete(idea)
                 }}
               >
@@ -633,6 +639,8 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={(e) => {
                 e.stopPropagation()
+                e.preventDefault()
+                console.log('[IdeaListItem] View clicked, idea:', { id: idea.id, title: idea.title })
                 router.push(`/ideas/${idea.id}`)
               }}>
                 <Eye className="h-4 w-4 mr-2" />
@@ -640,6 +648,8 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
               </DropdownMenuItem>
               <DropdownMenuItem onClick={(e) => {
                 e.stopPropagation()
+                e.preventDefault()
+                console.log('[IdeaListItem] Edit clicked, idea:', { id: idea.id, title: idea.title })
                 router.push(`/ideas/${idea.id}`)
               }}>
                 <Edit className="h-4 w-4 mr-2" />
@@ -650,6 +660,8 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
                 className="text-red-600"
                 onClick={(e) => {
                   e.stopPropagation()
+                  e.preventDefault()
+                  console.log('[IdeaListItem] Delete clicked, idea:', { id: idea.id, title: idea.title })
                   onDelete(idea)
                 }}
               >
