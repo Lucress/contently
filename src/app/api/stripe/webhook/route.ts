@@ -4,10 +4,16 @@ import { stripe } from '@/lib/stripe/server'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Initialize Supabase client lazily to avoid build-time errors
+const getSupabaseAdmin = () => {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('Missing Supabase environment variables')
+  }
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  )
+}
 
 const relevantEvents = new Set([
   'checkout.session.completed',
@@ -39,6 +45,8 @@ export async function POST(req: NextRequest) {
   if (!relevantEvents.has(event.type)) {
     return NextResponse.json({ received: true })
   }
+
+  const supabaseAdmin = getSupabaseAdmin()
 
   try {
     switch (event.type) {
