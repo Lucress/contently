@@ -414,6 +414,7 @@ export function IdeasContent({
                 index={index}
                 onDelete={handleDelete}
                 onStatusChange={handleStatusChange}
+                router={router}
               />
             ))}
           </AnimatePresence>
@@ -428,6 +429,7 @@ export function IdeasContent({
                 index={index}
                 onDelete={handleDelete}
                 onStatusChange={handleStatusChange}
+                router={router}
               />
             ))}
           </AnimatePresence>
@@ -442,20 +444,13 @@ interface IdeaCardProps {
   index: number
   onDelete: (idea: Idea) => void
   onStatusChange: (idea: Idea, status: IdeaStatus) => void
+  router: ReturnType<typeof useRouter>
 }
 
-function IdeaCard({ idea, index, onDelete, onStatusChange }: IdeaCardProps) {
+function IdeaCard({ idea, index, onDelete, onStatusChange, router }: IdeaCardProps) {
   const status = statusConfig[idea.status as IdeaStatus]
   const StatusIcon = status.icon
   const priority = priorityConfig[idea.priority]
-
-  const handleViewClick = () => {
-    window.location.href = `/ideas/${idea.id}`
-  }
-
-  const handleDeleteClick = () => {
-    onDelete(idea)
-  }
 
   return (
     <motion.div
@@ -562,14 +557,10 @@ function IdeaCard({ idea, index, onDelete, onStatusChange }: IdeaCardProps) {
   )
 }
 
-function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) {
+function IdeaListItem({ idea, index, onDelete, onStatusChange, router }: IdeaCardProps) {
   const status = statusConfig[idea.status as IdeaStatus]
   const StatusIcon = status.icon
   const priority = priorityConfig[idea.priority]
-
-  const handleDeleteClick = () => {
-    onDelete(idea)
-  }
 
   return (
     <motion.div
@@ -639,14 +630,14 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
             <DropdownMenuContent align="end">
               <DropdownMenuItem 
                 className="cursor-pointer"
-                onSelect={() => { window.location.href = `/ideas/${idea.id}` }}
+                onSelect={() => router.push(`/ideas/${idea.id}`)}
               >
                 <Eye className="h-4 w-4 mr-2" />
                 View
               </DropdownMenuItem>
               <DropdownMenuItem 
                 className="cursor-pointer"
-                onSelect={() => { window.location.href = `/production?id=${idea.id}` }}
+                onSelect={() => router.push(`/production?id=${idea.id}`)}
               >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
