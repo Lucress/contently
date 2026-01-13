@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient, createUntypedClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { 
   Video,
   Camera,
@@ -124,8 +124,20 @@ export function ProductionContent({
 
   const { toast } = useToast()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
   const supabaseMutation = createUntypedClient()
+
+  // Auto-select idea from URL param
+  useEffect(() => {
+    const ideaId = searchParams.get('id')
+    if (ideaId && ideas.length > 0) {
+      const idea = ideas.find(i => i.id === ideaId)
+      if (idea) {
+        selectIdea(idea)
+      }
+    }
+  }, [searchParams, ideas])
 
   // Group ideas by status
   const ideasByStatus = useMemo(() => {
@@ -495,20 +507,10 @@ export function ProductionContent({
                       {statusConfig[selectedIdea.status as IdeaStatus].label}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => { window.location.href = `/ideas/${selectedIdea.id}` }}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Full
-                    </Button>
-                    <Button size="sm" onClick={handleSaveIdea} disabled={isLoading}>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save
-                    </Button>
-                  </div>
+                  <Button size="sm" onClick={handleSaveIdea} disabled={isLoading}>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save
+                  </Button>
                 </div>
 
                 <div className="p-6 space-y-6">

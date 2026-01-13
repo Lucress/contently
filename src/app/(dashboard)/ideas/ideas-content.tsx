@@ -494,7 +494,7 @@ function IdeaCard({ idea, index, onDelete, onStatusChange }: IdeaCardProps) {
               </DropdownMenuItem>
               <DropdownMenuItem 
                 className="cursor-pointer"
-                onSelect={() => { window.location.href = `/ideas/${idea.id}` }}
+                onSelect={() => { window.location.href = `/production?id=${idea.id}` }}
               >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
@@ -502,7 +502,7 @@ function IdeaCard({ idea, index, onDelete, onStatusChange }: IdeaCardProps) {
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 className="text-red-600 cursor-pointer"
-                onSelect={() => handleDeleteClick()}
+                onSelect={() => onDelete(idea)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
@@ -646,7 +646,7 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
               </DropdownMenuItem>
               <DropdownMenuItem 
                 className="cursor-pointer"
-                onSelect={() => { window.location.href = `/ideas/${idea.id}` }}
+                onSelect={() => { window.location.href = `/production?id=${idea.id}` }}
               >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
@@ -654,7 +654,7 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange }: IdeaCardProps) 
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 className="text-red-600 cursor-pointer"
-                onSelect={() => handleDeleteClick()}
+                onSelect={() => onDelete(idea)}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
