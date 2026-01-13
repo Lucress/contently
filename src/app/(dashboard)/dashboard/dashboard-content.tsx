@@ -152,13 +152,13 @@ export function DashboardContent({
                   <div
                     key={pillar.id}
                     className="p-4 rounded-xl border bg-card hover:shadow-soft transition-all"
-                    style={{ borderLeftColor: pillar.color, borderLeftWidth: '4px' }}
+                    style={{ borderLeftColor: pillar.color || '#8b5cf6', borderLeftWidth: '4px' }}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-semibold text-sm">{pillar.name}</h3>
                       <div
                         className="h-3 w-3 rounded-full"
-                        style={{ backgroundColor: pillar.color }}
+                        style={{ backgroundColor: pillar.color || '#8b5cf6' }}
                       />
                     </div>
                     {pillar.description && (
