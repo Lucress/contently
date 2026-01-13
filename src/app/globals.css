@@ -1,0 +1,273 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 262 83% 58%;
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 262 83% 58%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .gradient-mask-b {
+    mask-image: linear-gradient(to bottom, black 60%, transparent);
+  }
+  
+  .gradient-mask-t {
+    mask-image: linear-gradient(to top, black 60%, transparent);
+  }
+}
+
+/* Custom scrollbar for main areas */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+/* Page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+}
+
+/* Focus styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background;
+}
+
+/* Card hover effect */
+.card-hover {
+  @apply transition-all duration-200 hover:shadow-soft-lg hover:-translate-y-0.5;
+}
+
+/* Skeleton loading */
+.skeleton {
+  @apply animate-pulse bg-muted rounded;
+}
+
+/* Status dot */
+.status-dot {
+  @apply w-2 h-2 rounded-full;
+}
+
+/* Kanban column */
+.kanban-column {
+  @apply flex flex-col min-h-[500px] bg-muted/30 rounded-xl p-3;
+}
+
+/* Calendar day cell */
+.calendar-day {
+  @apply relative p-1 min-h-[100px] border-r border-b border-border/50;
+}
+
+.calendar-day:last-child {
+  @apply border-r-0;
+}
+
+/* Email list item */
+.email-item {
+  @apply flex items-start gap-3 p-4 border-b border-border/50 cursor-pointer transition-colors hover:bg-muted/50;
+}
+
+.email-item.unread {
+  @apply bg-primary/5;
+}
+
+/* Sidebar styles */
+.sidebar-link {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground;
+}
+
+.sidebar-link.active {
+  @apply bg-primary/10 text-primary font-medium;
+}
+
+/* Quick add form */
+.quick-add {
+  @apply bg-muted/50 border border-dashed border-border rounded-xl p-4 transition-all duration-200 hover:border-primary/50 hover:bg-muted;
+}
+
+/* Empty state */
+.empty-state {
+  @apply flex flex-col items-center justify-center py-16 text-center;
+}
+
+.empty-state-icon {
+  @apply w-16 h-16 text-muted-foreground/30 mb-4;
+}
+
+/* Badge variants */
+.badge {
+  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium;
+}
+
+/* Progress bar */
+.progress-bar {
+  @apply h-2 bg-muted rounded-full overflow-hidden;
+}
+
+.progress-bar-fill {
+  @apply h-full bg-primary transition-all duration-500 ease-out;
+}
+
+/* Pill tabs */
+.pill-tabs {
+  @apply inline-flex items-center gap-1 p-1 bg-muted rounded-lg;
+}
+
+.pill-tab {
+  @apply px-3 py-1.5 rounded-md text-sm font-medium text-muted-foreground transition-all duration-200;
+}
+
+.pill-tab.active {
+  @apply bg-background text-foreground shadow-sm;
+}
+
+/* Table styles */
+.data-table {
+  @apply w-full text-sm;
+}
+
+.data-table th {
+  @apply px-4 py-3 text-left font-medium text-muted-foreground bg-muted/50;
+}
+
+.data-table td {
+  @apply px-4 py-3 border-b border-border/50;
+}
+
+.data-table tr:hover td {
+  @apply bg-muted/30;
+}
+
+/* Metric card */
+.metric-card {
+  @apply bg-card rounded-xl border border-border p-6;
+}
+
+.metric-value {
+  @apply text-3xl font-semibold tracking-tight;
+}
+
+.metric-label {
+  @apply text-sm text-muted-foreground mt-1;
+}
+
+.metric-change {
+  @apply inline-flex items-center gap-1 text-xs font-medium mt-2;
+}
+
+.metric-change.positive {
+  @apply text-success;
+}
+
+.metric-change.negative {
+  @apply text-destructive;
+}
