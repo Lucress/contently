@@ -19,6 +19,10 @@ import {
   Edit3,
   Trash2,
   Save,
+  Copy,
+  Hash,
+  FileVideo,
+  Check,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -39,6 +43,15 @@ interface ContentPillar {
   color: string
   icon: string
   ideaCount: number
+  hashtags?: string[]
+  contentType?: string
+}
+
+interface ContentType {
+  id: string
+  name: string
+  icon: string
+  color: string
 }
 
 interface DashboardContentProps {
@@ -59,6 +72,7 @@ interface DashboardContentProps {
   tasks: Tables<'tasks'>[]
   ideasByStatus: { status: string; count: number; color: string }[]
   contentPillars?: ContentPillar[]
+  contentTypes?: ContentType[]
 }
 
 const container = {
@@ -85,6 +99,7 @@ export function DashboardContent({
   tasks,
   ideasByStatus,
   contentPillars: initialPillars = [],
+  contentTypes: availableContentTypes = [],
 }: DashboardContentProps) {
   const { t, language } = useLanguage()
   const { toast } = useToast()
@@ -93,9 +108,34 @@ export function DashboardContent({
   const [pillars, setPillars] = useState<ContentPillar[]>(initialPillars)
   const [isAddingPillar, setIsAddingPillar] = useState(false)
   const [editingPillarId, setEditingPillarId] = useState<string | null>(null)
-  const [newPillar, setNewPillar] = useState({ name: '', description: '', color: '#8b5cf6' })
-  const [editPillar, setEditPillar] = useState({ name: '', description: '', color: '' })
+  const [expandedPillarId, setExpandedPillarId] = useState<string | null>(null)
+  const [copiedPillarId, setCopiedPillarId] = useState<string | null>(null)
+  const [newPillar, setNewPillar] = useState({ 
+    name: '', 
+    description: '', 
+    color: '#8b5cf6',
+    hashtags: '',
+    contentType: ''
+  })
+  const [editPillar, setEditPillar] = useState({ 
+    name: '', 
+    description: '', 
+    color: '',
+    hashtags: '',
+    contentType: ''
+  })
   const [isLoading, setIsLoading] = useState(false)
+
+  // Default content types if none provided
+  const defaultContentTypes: ContentType[] = [
+    { id: 'short', name: language === 'fr' ? 'Short/Reel' : 'Short/Reel', icon: '📱', color: '#ec4899' },
+    { id: 'video', name: language === 'fr' ? 'Vidéo longue' : 'Long Video', icon: '🎬', color: '#3b82f6' },
+    { id: 'live', name: 'Live', icon: '🔴', color: '#ef4444' },
+    { id: 'story', name: 'Story', icon: '⭐', color: '#f59e0b' },
+    { id: 'post', name: 'Post', icon: '📷', color: '#10b981' },
+  ]
+
+  const contentTypeOptions = availableContentTypes.length > 0 ? availableContentTypes : defaultContentTypes
 
   const pillarColors = [
     '#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#84cc16'
@@ -110,24 +150,53 @@ export function DashboardContent({
 
   const firstName = profile?.full_name?.split(' ')[0] || (language === 'fr' ? 'Créateur' : 'Creator')
 
+  // Parse hashtags from string
+  const parseHashtags = (str: string): string[] => {
+    return str
+      .split(/[,\s]+/)
+      .map(tag => tag.replace(/^#/, '').trim())
+      .filter(tag => tag.length > 0)
+  }
+
+  // Copy hashtags to clipboard
+  const copyHashtags = (pillar: ContentPillar) => {
+    const hashtags = pillar.hashtags || []
+    if (hashtags.length === 0) return
+    
+    const text = hashtags.map(tag => `#${tag}`).join(' ')
+    navigator.clipboard.writeText(text)
+    setCopiedPillarId(pillar.id)
+    setTimeout(() => setCopiedPillarId(null), 2000)
+    
+    toast({
+      title: language === 'fr' ? 'Hashtags copiés!' : 'Hashtags copied!',
+      description: language === 'fr' 
+        ? `${hashtags.length} hashtags copiés dans le presse-papiers` 
+        : `${hashtags.length} hashtags copied to clipboard`,
+    })
+  }
+
   // Pillar CRUD operations using server actions
   const handleAddPillar = async () => {
     if (!newPillar.name.trim()) return
     setIsLoading(true)
     
     try {
+      const hashtags = parseHashtags(newPillar.hashtags)
       const result = await createPillar({
         name: newPillar.name,
         description: newPillar.description || null,
         color: newPillar.color,
+        hashtags,
+        contentType: newPillar.contentType || null,
       })
 
       if (result.error) throw new Error(result.error)
 
       if (result.data) {
-        setPillars([...pillars, { ...result.data, ideaCount: 0 }])
+        setPillars([...pillars, { ...result.data, ideaCount: 0, hashtags, contentType: newPillar.contentType }])
       }
-      setNewPillar({ name: '', description: '', color: '#8b5cf6' })
+      setNewPillar({ name: '', description: '', color: '#8b5cf6', hashtags: '', contentType: '' })
       setIsAddingPillar(false)
       toast({
         title: language === 'fr' ? 'Pilier créé!' : 'Pillar created!',
@@ -149,15 +218,25 @@ export function DashboardContent({
     setIsLoading(true)
 
     try {
+      const hashtags = parseHashtags(editPillar.hashtags)
       const result = await updatePillar(id, {
         name: editPillar.name,
         description: editPillar.description || null,
         color: editPillar.color,
+        hashtags,
+        contentType: editPillar.contentType || null,
       })
 
       if (result.error) throw new Error(result.error)
 
-      setPillars(pillars.map(p => p.id === id ? { ...p, ...editPillar } : p))
+      setPillars(pillars.map(p => p.id === id ? { 
+        ...p, 
+        name: editPillar.name,
+        description: editPillar.description,
+        color: editPillar.color,
+        hashtags,
+        contentType: editPillar.contentType
+      } : p))
       setEditingPillarId(null)
       toast({
         title: language === 'fr' ? 'Pilier mis à jour!' : 'Pillar updated!',
@@ -196,7 +275,17 @@ export function DashboardContent({
 
   const startEditing = (pillar: ContentPillar) => {
     setEditingPillarId(pillar.id)
-    setEditPillar({ name: pillar.name, description: pillar.description || '', color: pillar.color })
+    setEditPillar({ 
+      name: pillar.name, 
+      description: pillar.description || '', 
+      color: pillar.color,
+      hashtags: (pillar.hashtags || []).join(', '),
+      contentType: pillar.contentType || ''
+    })
+  }
+
+  const getContentTypeInfo = (typeId: string) => {
+    return contentTypeOptions.find(t => t.id === typeId || t.name === typeId)
   }
 
   return (
@@ -269,13 +358,27 @@ export function DashboardContent({
                   exit={{ opacity: 0, height: 0 }}
                   className="mb-4 p-4 rounded-xl border-2 border-dashed border-brand-300 bg-brand-50/50 dark:bg-brand-950/20"
                 >
-                  <div className="space-y-3">
-                    <Input
-                      placeholder={language === 'fr' ? 'Nom du pilier...' : 'Pillar name...'}
-                      value={newPillar.name}
-                      onChange={(e) => setNewPillar({ ...newPillar, name: e.target.value })}
-                      className="border-brand-200 focus:border-brand-400"
-                    />
+                  <div className="space-y-4">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <Input
+                        placeholder={language === 'fr' ? 'Nom du pilier...' : 'Pillar name...'}
+                        value={newPillar.name}
+                        onChange={(e) => setNewPillar({ ...newPillar, name: e.target.value })}
+                        className="border-brand-200 focus:border-brand-400"
+                      />
+                      <select
+                        value={newPillar.contentType}
+                        onChange={(e) => setNewPillar({ ...newPillar, contentType: e.target.value })}
+                        className="flex h-10 w-full rounded-md border border-brand-200 bg-background px-3 py-2 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20"
+                      >
+                        <option value="">{language === 'fr' ? 'Type de contenu...' : 'Content type...'}</option>
+                        {contentTypeOptions.map((type) => (
+                          <option key={type.id} value={type.id}>
+                            {type.icon} {type.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                     <Textarea
                       placeholder={language === 'fr' ? 'Description (optionnel)' : 'Description (optional)'}
                       value={newPillar.description}
@@ -283,6 +386,15 @@ export function DashboardContent({
                       rows={2}
                       className="border-brand-200 focus:border-brand-400 resize-none"
                     />
+                    <div className="relative">
+                      <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder={language === 'fr' ? 'Hashtags (séparés par virgule ou espace)' : 'Hashtags (comma or space separated)'}
+                        value={newPillar.hashtags}
+                        onChange={(e) => setNewPillar({ ...newPillar, hashtags: e.target.value })}
+                        className="pl-9 border-brand-200 focus:border-brand-400"
+                      />
+                    </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">
                         {language === 'fr' ? 'Couleur:' : 'Color:'}
@@ -314,7 +426,7 @@ export function DashboardContent({
                       <Button
                         onClick={() => {
                           setIsAddingPillar(false)
-                          setNewPillar({ name: '', description: '', color: '#8b5cf6' })
+                          setNewPillar({ name: '', description: '', color: '#8b5cf6', hashtags: '', contentType: '' })
                         }}
                         variant="ghost"
                         size="sm"
@@ -343,17 +455,42 @@ export function DashboardContent({
                         /* Edit mode */
                         <div className="p-4 rounded-xl border-2 border-brand-400 bg-white dark:bg-background">
                           <div className="space-y-3">
-                            <Input
-                              value={editPillar.name}
-                              onChange={(e) => setEditPillar({ ...editPillar, name: e.target.value })}
-                              className="border-brand-200"
-                            />
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              <Input
+                                value={editPillar.name}
+                                onChange={(e) => setEditPillar({ ...editPillar, name: e.target.value })}
+                                className="border-brand-200"
+                                placeholder={language === 'fr' ? 'Nom' : 'Name'}
+                              />
+                              <select
+                                value={editPillar.contentType}
+                                onChange={(e) => setEditPillar({ ...editPillar, contentType: e.target.value })}
+                                className="flex h-10 w-full rounded-md border border-brand-200 bg-background px-3 py-2 text-sm focus:border-brand-400 focus:outline-none"
+                              >
+                                <option value="">{language === 'fr' ? 'Type de contenu...' : 'Content type...'}</option>
+                                {contentTypeOptions.map((type) => (
+                                  <option key={type.id} value={type.id}>
+                                    {type.icon} {type.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
                             <Textarea
                               value={editPillar.description}
                               onChange={(e) => setEditPillar({ ...editPillar, description: e.target.value })}
                               rows={2}
                               className="border-brand-200 resize-none"
+                              placeholder={language === 'fr' ? 'Description' : 'Description'}
                             />
+                            <div className="relative">
+                              <Hash className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                              <Input
+                                value={editPillar.hashtags}
+                                onChange={(e) => setEditPillar({ ...editPillar, hashtags: e.target.value })}
+                                className="pl-8 border-brand-200"
+                                placeholder={language === 'fr' ? 'Hashtags' : 'Hashtags'}
+                              />
+                            </div>
                             <div className="flex gap-1">
                               {pillarColors.map((color) => (
                                 <button
@@ -390,31 +527,86 @@ export function DashboardContent({
                       ) : (
                         /* Display mode */
                         <div
-                          className="group relative p-4 rounded-xl border bg-white dark:bg-background hover:shadow-lg transition-all duration-300 cursor-pointer"
+                          className="group relative p-4 rounded-xl border bg-white dark:bg-background hover:shadow-lg transition-all duration-300"
                           style={{ borderLeftWidth: '4px', borderLeftColor: pillar.color }}
                         >
-                          <Link href={`/ideas?pillar=${pillar.id}`} className="block">
-                            <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-2">
                               <div
-                                className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-medium"
+                                className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-medium shrink-0"
                                 style={{ backgroundColor: pillar.color }}
                               >
                                 {pillar.name.charAt(0).toUpperCase()}
                               </div>
-                              <Badge 
-                                variant="secondary" 
-                                className="text-xs bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"
-                              >
-                                {pillar.ideaCount} {language === 'fr' ? 'idées' : 'ideas'}
-                              </Badge>
+                              {pillar.contentType && getContentTypeInfo(pillar.contentType) && (
+                                <span className="text-sm" title={getContentTypeInfo(pillar.contentType)?.name}>
+                                  {getContentTypeInfo(pillar.contentType)?.icon}
+                                </span>
+                              )}
                             </div>
-                            <h3 className="font-semibold text-sm mb-1">{pillar.name}</h3>
+                            <Badge 
+                              variant="secondary" 
+                              className="text-xs bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"
+                            >
+                              {pillar.ideaCount} {language === 'fr' ? 'idées' : 'ideas'}
+                            </Badge>
+                          </div>
+                          
+                          <Link href={`/ideas?pillar=${pillar.id}`} className="block">
+                            <h3 className="font-semibold text-sm mb-1 hover:text-brand-600 transition-colors">{pillar.name}</h3>
                             {pillar.description && (
-                              <p className="text-xs text-muted-foreground line-clamp-2">
+                              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
                                 {pillar.description}
                               </p>
                             )}
                           </Link>
+
+                          {/* Hashtags section */}
+                          {pillar.hashtags && pillar.hashtags.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-dashed">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Hash className="w-3 h-3" />
+                                  {pillar.hashtags.length} hashtags
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    copyHashtags(pillar)
+                                  }}
+                                  className="flex items-center gap-1 text-xs text-brand-600 hover:text-brand-700 transition-colors"
+                                >
+                                  {copiedPillarId === pillar.id ? (
+                                    <>
+                                      <Check className="w-3 h-3" />
+                                      {language === 'fr' ? 'Copié!' : 'Copied!'}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy className="w-3 h-3" />
+                                      {language === 'fr' ? 'Copier' : 'Copy'}
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                {pillar.hashtags.slice(0, 5).map((tag, i) => (
+                                  <span 
+                                    key={i}
+                                    className="text-xs px-2 py-0.5 rounded-full bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-300"
+                                  >
+                                    #{tag}
+                                  </span>
+                                ))}
+                                {pillar.hashtags.length > 5 && (
+                                  <span className="text-xs px-2 py-0.5 text-muted-foreground">
+                                    +{pillar.hashtags.length - 5}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
                           
                           {/* Action buttons - shown on hover */}
                           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
