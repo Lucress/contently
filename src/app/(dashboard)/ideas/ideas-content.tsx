@@ -482,14 +482,14 @@ function IdeaCard({ idea, index, onDelete, onStatusChange, router }: IdeaCardPro
             <DropdownMenuContent align="end">
               <DropdownMenuItem 
                 className="cursor-pointer"
-                onSelect={() => { window.location.href = `/ideas/${idea.id}` }}
+                onSelect={() => router.push(`/ideas/${idea.id}`)}
               >
                 <Eye className="h-4 w-4 mr-2" />
                 View
               </DropdownMenuItem>
               <DropdownMenuItem 
                 className="cursor-pointer"
-                onSelect={() => { window.location.href = `/production?id=${idea.id}` }}
+                onSelect={() => router.push(`/production?id=${idea.id}`)}
               >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
