@@ -482,14 +482,20 @@ function IdeaCard({ idea, index, onDelete, onStatusChange, router }: IdeaCardPro
             <DropdownMenuContent align="end">
               <DropdownMenuItem 
                 className="cursor-pointer"
-                onSelect={() => router.push(`/ideas/${idea.id}`)}
+                onSelect={(e) => {
+                  e.preventDefault()
+                  setTimeout(() => router.push(`/ideas/${idea.id}`), 0)
+                }}
               >
                 <Eye className="h-4 w-4 mr-2" />
                 View
               </DropdownMenuItem>
               <DropdownMenuItem 
                 className="cursor-pointer"
-                onSelect={() => router.push(`/production?id=${idea.id}`)}
+                onSelect={(e) => {
+                  e.preventDefault()
+                  setTimeout(() => router.push(`/production?id=${idea.id}`), 0)
+                }}
               >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
@@ -630,14 +636,20 @@ function IdeaListItem({ idea, index, onDelete, onStatusChange, router }: IdeaCar
             <DropdownMenuContent align="end">
               <DropdownMenuItem 
                 className="cursor-pointer"
-                onSelect={() => router.push(`/ideas/${idea.id}`)}
+                onSelect={(e) => {
+                  e.preventDefault()
+                  setTimeout(() => router.push(`/ideas/${idea.id}`), 0)
+                }}
               >
                 <Eye className="h-4 w-4 mr-2" />
                 View
               </DropdownMenuItem>
               <DropdownMenuItem 
                 className="cursor-pointer"
-                onSelect={() => router.push(`/production?id=${idea.id}`)}
+                onSelect={(e) => {
+                  e.preventDefault()
+                  setTimeout(() => router.push(`/production?id=${idea.id}`), 0)
+                }}
               >
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
