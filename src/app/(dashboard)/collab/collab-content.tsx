@@ -554,7 +554,7 @@ export function CollabContent({
 
         {/* Pipeline View */}
         <TabsContent value="pipeline" className="mt-6">
-          <div className="grid grid-cols-5 gap-4 overflow-x-auto">
+          <div className="flex gap-4 overflow-x-auto pb-4">
             {pipelineStages.map((status) => {
               const config = dealStatusConfig[status]
               const StatusIcon = config.icon
@@ -562,102 +562,113 @@ export function CollabContent({
               const stageTotal = stageDeals.reduce((sum, d) => sum + ((d as any).value || 0), 0)
 
               return (
-                <div key={status} className="min-w-[250px]">
-                  <div className="mb-3">
-                    <div className="flex items-center gap-2 mb-1">
+                <div key={status} className="flex-shrink-0 w-[280px]">
+                  <div className="bg-muted/50 rounded-lg p-4 mb-3">
+                    <div className="flex items-center gap-2 mb-2">
                       <StatusIcon className={cn("h-4 w-4", config.color)} />
-                      <span className="font-medium">{config.label}</span>
-                      <Badge variant="secondary" className="ml-auto">
+                      <span className="font-medium text-sm">{config.label}</span>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <Badge variant="secondary" className="text-lg font-bold px-2 py-1">
                         {stageDeals.length}
                       </Badge>
+                      <p className="text-sm text-muted-foreground">
+                        {formatCurrency(stageTotal, 'EUR')}
+                      </p>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {formatCurrency(stageTotal, 'EUR')}
-                    </p>
                   </div>
                   
-                  <div className="space-y-2">
-                    {stageDeals.map((deal) => (
-                      <motion.div
-                        key={deal.id}
-                        layout
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="bg-card border rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow"
-                        onClick={() => openDealDialog(deal)}
-                      >
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <h4 className="font-medium text-sm line-clamp-2">{deal.title}</h4>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                              <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0">
-                                <MoreVertical className="h-3.5 w-3.5" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={(e) => {
-                                e.stopPropagation()
-                                openDealDialog(deal)
-                              }}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              {pipelineStages.filter(s => s !== deal.status).map(s => (
+                  <div className="space-y-2 min-h-[200px]">
+                    {stageDeals.length > 0 ? (
+                      stageDeals.map((deal) => (
+                        <motion.div
+                          key={deal.id}
+                          layout
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="bg-card border rounded-lg p-3 cursor-pointer hover:border-primary/50 hover:shadow-sm transition-all group"
+                          onClick={() => openDealDialog(deal)}
+                        >
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <h4 className="font-medium text-sm line-clamp-2 flex-1">{deal.title}</h4>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <MoreVertical className="h-3.5 w-3.5" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={(e) => {
+                                  e.stopPropagation()
+                                  openDealDialog(deal)
+                                }}>
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                {pipelineStages.filter(s => s !== deal.status).map(s => (
+                                  <DropdownMenuItem 
+                                    key={s}
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleDealStatusChange(deal, s)
+                                    }}
+                                  >
+                                    <ArrowRight className="h-4 w-4 mr-2" />
+                                    {dealStatusConfig[s].label}
+                                  </DropdownMenuItem>
+                                ))}
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem 
-                                  key={s}
+                                  className="text-red-600"
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    handleDealStatusChange(deal, s)
+                                    handleDeleteDeal(deal)
                                   }}
                                 >
-                                  <ArrowRight className="h-4 w-4 mr-2" />
-                                  {dealStatusConfig[s].label}
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete
                                 </DropdownMenuItem>
-                              ))}
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem 
-                                className="text-red-600"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleDeleteDeal(deal)
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                        
-                        {deal.brand && (
-                          <div className="flex items-center gap-2 mb-2">
-                            <Avatar className="h-5 w-5">
-                              <AvatarImage src={deal.brand.logo_url || ''} />
-                              <AvatarFallback className="text-xs">
-                                {deal.brand.name.charAt(0)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-xs text-muted-foreground truncate">
-                              {deal.brand.name}
-                            </span>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
-                        )}
-                        
-                        {(deal as any).value && (
-                          <p className="text-sm font-semibold text-primary">
-                            {formatCurrency((deal as any).value, deal.currency)}
-                          </p>
-                        )}
-                        
-                        {deal.deadline && (
-                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {format(new Date(deal.deadline), 'd MMM', { locale: enUS })}
-                          </p>
-                        )}
-                      </motion.div>
-                    ))}
+                          
+                          {deal.brand && (
+                            <div className="flex items-center gap-2 mb-2">
+                              <Avatar className="h-5 w-5">
+                                <AvatarImage src={deal.brand.logo_url || ''} />
+                                <AvatarFallback className="text-xs">
+                                  {deal.brand.name.charAt(0)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs text-muted-foreground truncate">
+                                {deal.brand.name}
+                              </span>
+                            </div>
+                          )}
+                          
+                          {(deal as any).value && (
+                            <p className="text-sm font-semibold text-primary">
+                              {formatCurrency((deal as any).value, deal.currency)}
+                            </p>
+                          )}
+                          
+                          {deal.deadline && (
+                            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {format(new Date(deal.deadline), 'd MMM', { locale: enUS })}
+                            </p>
+                          )}
+                        </motion.div>
+                      ))
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
+                          <Briefcase className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <p className="text-sm text-muted-foreground">No deals yet</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )
