@@ -416,26 +416,20 @@ function IdeaGridCard({ idea, onDelete }: { idea: Idea; onDelete: () => void }) 
           )}
         </div>
 
-        {/* Action Buttons - Using standard Link components */}
+        {/* Action Buttons - Using Button asChild with Link */}
         <div className="flex gap-2 pt-2">
-          <Link 
-            href={`/ideas/${idea.id}`}
-            className="flex-1"
-          >
-            <Button variant="outline" size="sm" className="w-full">
+          <Button variant="outline" size="sm" className="flex-1" asChild>
+            <Link href={`/ideas/${idea.id}`}>
               <Eye className="h-3.5 w-3.5 mr-1.5" />
               View
-            </Button>
-          </Link>
-          <Link 
-            href={`/production?id=${idea.id}`}
-            className="flex-1"
-          >
-            <Button variant="outline" size="sm" className="w-full">
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" className="flex-1" asChild>
+            <Link href={`/production?id=${idea.id}`}>
               <Pencil className="h-3.5 w-3.5 mr-1.5" />
               Edit
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <Button 
             variant="outline" 
             size="sm" 
@@ -494,18 +488,18 @@ function IdeaListRow({ idea, onDelete }: { idea: Idea; onDelete: () => void }) {
           {status.label}
         </Badge>
 
-        {/* Actions - Using standard Link components */}
+        {/* Actions - Using Button asChild with Link */}
         <div className="flex items-center gap-1 shrink-0">
-          <Link href={`/ideas/${idea.id}`}>
-            <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href={`/ideas/${idea.id}`}>
               <Eye className="h-4 w-4" />
-            </Button>
-          </Link>
-          <Link href={`/production?id=${idea.id}`}>
-            <Button variant="ghost" size="sm">
+            </Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href={`/production?id=${idea.id}`}>
               <Pencil className="h-4 w-4" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <Button 
             variant="ghost" 
             size="sm" 
