@@ -35,8 +35,8 @@ export const PLANS = {
   pro: {
     id: 'pro',
     name: 'Pro',
-    description: 'Pour les créateurs sérieux',
-    price: 19,
+    description: 'For serious creators',
+    price: 4.99,
     currency: 'eur',
     interval: 'month' as const,
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO,
@@ -58,8 +58,8 @@ export const PLANS = {
   creator_plus: {
     id: 'creator_plus',
     name: 'Creator+',
-    description: 'L\'expérience ultime',
-    price: 49,
+    description: 'The ultimate experience',
+    price: 9.99,
     currency: 'eur',
     interval: 'month' as const,
     priceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_CREATOR_PLUS,

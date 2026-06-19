@@ -85,27 +85,32 @@ export default function SignupPage() {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true)
     try {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${appUrl}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       })
 
       if (error) {
         toast({
-          title: 'Error',
+          title: 'Google sign-in failed',
           description: error.message,
           variant: 'destructive',
         })
+        setIsGoogleLoading(false)
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Something went wrong. Please try again.',
         variant: 'destructive',
       })
-    } finally {
       setIsGoogleLoading(false)
     }
   }

@@ -77,27 +77,34 @@ function LoginForm() {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true)
     try {
+      // Use the canonical app URL in production to avoid redirect mismatch errors
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?redirect=${redirectTo}`,
+          redirectTo: `${appUrl}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       })
 
       if (error) {
         toast({
-          title: 'Error',
+          title: 'Google sign-in failed',
           description: error.message,
           variant: 'destructive',
         })
+        setIsGoogleLoading(false)
       }
-    } catch (error) {
+      // If no error, browser will redirect to Google — don't setIsGoogleLoading(false)
+    } catch {
       toast({
         title: 'Error',
         description: 'Something went wrong. Please try again.',
         variant: 'destructive',
       })
-    } finally {
       setIsGoogleLoading(false)
     }
   }

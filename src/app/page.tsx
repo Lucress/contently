@@ -149,6 +149,9 @@ export default function LandingPage() {
               <Link href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 FAQ
               </Link>
+              <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Blog
+              </Link>
             </div>
             <div className="flex items-center gap-3">
               <Link href="/auth/login">
@@ -580,12 +583,16 @@ export default function LandingPage() {
                   Most Popular
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold mb-1">Pro</h3>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-lg font-semibold">Pro</h3>
+                    <span className="px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-semibold rounded-full">🔥 Launch offer</span>
+                  </div>
                   <p className="text-sm text-muted-foreground mb-6">For growing creators</p>
-                  <div className="mb-6">
-                    <span className="text-4xl font-bold">€19</span>
+                  <div className="mb-1">
+                    <span className="text-4xl font-bold">€4.99</span>
                     <span className="text-muted-foreground">/month</span>
                   </div>
+                  <p className="text-xs text-muted-foreground line-through mb-5">Regular price €19/mo</p>
                   <ul className="space-y-3 mb-8">
                     {[
                       'Unlimited ideas & scripts',
@@ -613,12 +620,16 @@ export default function LandingPage() {
               {/* Creator+ Plan */}
               <div className="p-8 rounded-2xl border bg-card flex flex-col">
                 <div>
-                  <h3 className="text-lg font-semibold mb-1">Creator+</h3>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-lg font-semibold">Creator+</h3>
+                    <span className="px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs font-semibold rounded-full">🔥 Launch offer</span>
+                  </div>
                   <p className="text-sm text-muted-foreground mb-6">For serious creators & agencies</p>
-                  <div className="mb-6">
-                    <span className="text-4xl font-bold">€49</span>
+                  <div className="mb-1">
+                    <span className="text-4xl font-bold">€9.99</span>
                     <span className="text-muted-foreground">/month</span>
                   </div>
+                  <p className="text-xs text-muted-foreground line-through mb-5">Regular price €49/mo</p>
                   <ul className="space-y-3 mb-8">
                     {[
                       'Everything in Pro',
