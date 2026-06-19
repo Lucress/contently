@@ -200,7 +200,6 @@ src/
 | CRM Marques | ❌ | ✅ | ✅ |
 | Revenus | ❌ | ✅ | ✅ |
 | Email Hub | ❌ | ❌ | ✅ |
-| IA Assistant | ❌ | ❌ | 🔜 |
 
 ## 🧪 Données de Test
 

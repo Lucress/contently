@@ -26,7 +26,7 @@ const relevantEvents = new Set([
 
 export async function POST(req: NextRequest) {
   const body = await req.text()
-  const headersList = await headers()
+  const headersList = headers()
   const sig = headersList.get('stripe-signature')!
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
             user_id: userId,
             stripe_customer_id: session.customer as string,
             stripe_subscription_id: session.subscription as string,
-            plan_id: planId,
+            plan: planId,
             status: 'active',
             current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
             current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
@@ -104,15 +104,15 @@ export async function POST(req: NextRequest) {
           planId = 'creator_plus'
         }
 
-        const status = subscription.status === 'active' ? 'active' 
+        const status = subscription.status === 'active' ? 'active'
           : subscription.status === 'past_due' ? 'past_due'
           : subscription.status === 'canceled' ? 'canceled'
-          : 'inactive'
+          : 'paused'
 
         await supabaseAdmin
           .from('subscriptions')
           .update({
-            plan_id: planId,
+            plan: planId,
             status,
             current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
             current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),

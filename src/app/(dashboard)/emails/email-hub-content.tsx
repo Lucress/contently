@@ -168,14 +168,51 @@ export function EmailHubContent({
   }), [emails])
 
   const handleRefresh = async () => {
+    const imapAccount = emailAccounts.find(a => a.provider === 'imap')
+    if (!imapAccount) {
+      toast({
+        title: 'No IMAP account',
+        description: 'Add an IMAP account first to sync emails.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setIsRefreshing(true)
-    // In a real implementation, this would call an edge function to sync emails
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    setIsRefreshing(false)
-    toast({
-      title: 'Emails synced',
-      description: 'Your inbox is up to date.',
-    })
+    try {
+      const res = await fetch('/api/emails/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId: imapAccount.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+
+      if (data.synced > 0) {
+        // Reload emails from DB
+        const { data: freshEmails } = await supabase
+          .from('email_messages')
+          .select('*')
+          .order('received_at', { ascending: false })
+          .limit(100)
+        if (freshEmails) setEmails(freshEmails as any)
+      }
+
+      toast({
+        title: 'Inbox synced',
+        description: data.synced > 0
+          ? `${data.synced} new email${data.synced !== 1 ? 's' : ''} fetched.`
+          : 'Your inbox is already up to date.',
+      })
+    } catch (error: any) {
+      toast({
+        title: 'Sync failed',
+        description: error.message || 'Could not connect to the mail server.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsRefreshing(false)
+    }
   }
 
   const handleAddAccount = async () => {
@@ -265,19 +302,43 @@ export function EmailHubContent({
       return
     }
 
+    const accountId = composeForm.account_id || emailAccounts[0]?.id
+    if (!accountId) {
+      toast({
+        title: 'No email account',
+        description: 'Add an email account first.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setIsLoading(true)
     try {
-      // In real implementation, this would call an edge function to send via SMTP/Gmail API
+      // Send via SMTP through the API route
+      const res = await fetch('/api/emails/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accountId,
+          to: composeForm.to,
+          subject: composeForm.subject,
+          body: composeForm.body,
+        }),
+      })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error)
+
+      // Save to local "sent" folder in DB
       const { data, error } = await supabaseMutation
         .from('email_messages')
         .insert({
           user_id: userId,
-          email_account_id: composeForm.account_id || emailAccounts[0]?.id,
-          message_id: `local-${Date.now()}`,
+          email_account_id: accountId,
+          message_id: `sent-${Date.now()}`,
           subject: composeForm.subject,
           body_text: composeForm.body,
           to_emails: [composeForm.to],
-          from_email: emailAccounts.find(a => a.id === composeForm.account_id)?.email_address || emailAccounts[0]?.email_address || '',
+          from_email: emailAccounts.find(a => a.id === accountId)?.email_address || '',
           folder: 'sent',
           is_read: true,
           received_at: new Date().toISOString(),
@@ -293,13 +354,13 @@ export function EmailHubContent({
 
       toast({
         title: 'Email sent',
-        description: `Email sent to ${composeForm.to}`,
+        description: `Email delivered to ${composeForm.to}`,
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error(error)
       toast({
-        title: 'Error',
-        description: 'Unable to send email.',
+        title: 'Failed to send',
+        description: error.message || 'Check your SMTP settings and try again.',
         variant: 'destructive',
       })
     } finally {

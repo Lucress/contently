@@ -34,7 +34,7 @@ export default async function AdminPage() {
     { data: blogViews },
   ] = await Promise.all([
     admin.from('profiles').select('id, created_at, full_name', { count: 'exact' }).order('created_at', { ascending: false }),
-    admin.from('subscriptions').select('user_id, plan_id, status, current_period_end').eq('status', 'active'),
+    admin.from('subscriptions').select('user_id, plan, status, current_period_end').eq('status', 'active'),
     admin.from('profiles').select('id, full_name, email, created_at').order('created_at', { ascending: false }).limit(10),
     admin.from('ideas').select('id', { count: 'exact' }),
     admin.from('inspirations').select('id', { count: 'exact' }),
@@ -47,8 +47,8 @@ export default async function AdminPage() {
   // Plan breakdown
   const planBreakdown = {
     free: (totalUsers || 0) - (subscriptions?.length || 0),
-    pro: subscriptions?.filter(s => s.plan_id === 'pro').length || 0,
-    creator_plus: subscriptions?.filter(s => s.plan_id === 'creator_plus').length || 0,
+    pro: subscriptions?.filter(s => (s as any).plan === 'pro').length || 0,
+    creator_plus: subscriptions?.filter(s => (s as any).plan === 'creator_plus').length || 0,
   }
 
   // MRR calculation

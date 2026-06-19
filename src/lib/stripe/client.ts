@@ -67,7 +67,6 @@ export const PLANS = {
       'Tout de Pro',
       'Email Hub intégré',
       'Synchronisation emails',
-      'IA Assistant (bientôt)',
       'Support prioritaire',
       'Accès bêta nouvelles fonctionnalités',
     ],

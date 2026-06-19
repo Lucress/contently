@@ -127,10 +127,44 @@ export function SettingsContent({
   const [deleteDialog, setDeleteDialog] = useState<{ type: string; item: any } | null>(null)
   
   const [isLoading, setIsLoading] = useState(false)
+  const [isUpgradeLoading, setIsUpgradeLoading] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
   const supabase = createClient()
   const supabaseMutation = createUntypedClient()
+
+  // Billing handlers
+  const handleUpgrade = async (planId: 'pro' | 'creator_plus') => {
+    setIsUpgradeLoading(true)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      window.location.href = data.url
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' })
+    } finally {
+      setIsUpgradeLoading(false)
+    }
+  }
+
+  const handleManageBilling = async () => {
+    setIsUpgradeLoading(true)
+    try {
+      const res = await fetch('/api/stripe/portal', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      window.location.href = data.url
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' })
+    } finally {
+      setIsUpgradeLoading(false)
+    }
+  }
 
   // Profile handlers
   const handleSaveProfile = async () => {
@@ -872,9 +906,21 @@ export function SettingsContent({
                   {subscription ? `Plan ${subscription.plan}` : 'Free Plan'}
                 </p>
               </div>
-              <Badge variant={subscription ? "default" : "secondary"} className="text-lg px-4 py-1">
-                {subscription?.plan === 'creator_plus' ? 'Creator+' : subscription?.plan === 'pro' ? 'Pro' : 'Free'}
-              </Badge>
+              <div className="flex items-center gap-3">
+                <Badge variant={subscription ? "default" : "secondary"} className="text-lg px-4 py-1">
+                  {subscription?.plan === 'creator_plus' ? 'Creator+' : subscription?.plan === 'pro' ? 'Pro' : 'Free'}
+                </Badge>
+                {subscription && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={isUpgradeLoading}
+                    onClick={handleManageBilling}
+                  >
+                    {isUpgradeLoading ? 'Chargement…' : 'Gérer l\'abonnement'}
+                  </Button>
+                )}
+              </div>
             </div>
           </motion.div>
 
@@ -961,7 +1007,13 @@ export function SettingsContent({
                   Plan actuel
                 </Badge>
               ) : (
-                <Button className="w-full">Passer à Pro</Button>
+                <Button
+                  className="w-full"
+                  disabled={isUpgradeLoading}
+                  onClick={() => handleUpgrade('pro')}
+                >
+                  {isUpgradeLoading ? 'Chargement…' : 'Passer à Pro'}
+                </Button>
               )}
             </motion.div>
 
@@ -994,10 +1046,6 @@ export function SettingsContent({
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-green-500" />
-                  IA Assistant
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
                   Support prioritaire
                 </li>
               </ul>
@@ -1006,8 +1054,12 @@ export function SettingsContent({
                   Plan actuel
                 </Badge>
               ) : (
-                <Button className="w-full bg-purple-500 hover:bg-purple-600">
-                  Passer à Creator+
+                <Button
+                  className="w-full bg-purple-500 hover:bg-purple-600"
+                  disabled={isUpgradeLoading}
+                  onClick={() => handleUpgrade('creator_plus')}
+                >
+                  {isUpgradeLoading ? 'Chargement…' : 'Passer à Creator+'}
                 </Button>
               )}
             </motion.div>
