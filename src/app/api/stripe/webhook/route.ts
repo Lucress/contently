@@ -48,12 +48,23 @@ export async function POST(req: NextRequest) {
 
   const supabaseAdmin = getSupabaseAdmin()
 
+  // Private env vars are always read at runtime. NEXT_PUBLIC_* are baked at build time
+  // and may be undefined — use private vars as primary, NEXT_PUBLIC_ as fallback.
+  const PRICE_PRO = process.env.STRIPE_PRICE_PRO || process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO
+  const PRICE_CREATOR_PLUS = process.env.STRIPE_PRICE_CREATOR_PLUS || process.env.NEXT_PUBLIC_STRIPE_PRICE_CREATOR_PLUS
+
+  const getPlanId = (priceId: string | undefined): string => {
+    if (PRICE_CREATOR_PLUS && priceId === PRICE_CREATOR_PLUS) return 'creator_plus'
+    if (PRICE_PRO && priceId === PRICE_PRO) return 'pro'
+    return 'pro' // fallback
+  }
+
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
         const userId = session.metadata?.userId
-        
+
         if (!userId) {
           throw new Error('No userId in session metadata')
         }
@@ -63,12 +74,9 @@ export async function POST(req: NextRequest) {
           session.subscription as string
         )
 
-        // Determine plan from price
-        let planId = 'pro'
+        // Determine plan from price ID
         const priceId = subscription.items.data[0]?.price.id
-        if (priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_CREATOR_PLUS) {
-          planId = 'creator_plus'
-        }
+        const planId = getPlanId(priceId)
 
         // Create/update subscription in database
         const { error } = await supabaseAdmin
@@ -98,11 +106,8 @@ export async function POST(req: NextRequest) {
           break
         }
 
-        let planId = 'pro'
         const priceId = subscription.items.data[0]?.price.id
-        if (priceId === process.env.NEXT_PUBLIC_STRIPE_PRICE_CREATOR_PLUS) {
-          planId = 'creator_plus'
-        }
+        const planId = getPlanId(priceId)
 
         const status = subscription.status === 'active' ? 'active'
           : subscription.status === 'past_due' ? 'past_due'

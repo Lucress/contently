@@ -2,16 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createCheckoutSession } from '@/lib/stripe/server'
 
-// Read price IDs at request-time from private server env vars.
-// NEXT_PUBLIC_* vars are replaced at BUILD time even in API routes, so if they
-// were set in Vercel after the last build they'll still be undefined.
-// Private vars (no NEXT_PUBLIC_ prefix) are always read at runtime.
-const PLAN_PRICE_IDS: Record<string, string | undefined> = {
-  pro: process.env.STRIPE_PRICE_PRO || process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO,
-  creator_plus: process.env.STRIPE_PRICE_CREATOR_PLUS || process.env.NEXT_PUBLIC_STRIPE_PRICE_CREATOR_PLUS,
-}
-
 export async function POST(req: NextRequest) {
+  // Read price IDs inside the handler so they're resolved fresh on every cold start.
+  // NEXT_PUBLIC_* vars are inlined at build time by webpack — if they were undefined
+  // when the build ran, they'll always be undefined at runtime.
+  // Private vars (no NEXT_PUBLIC_ prefix) are read from the real process.env at runtime.
+  const PLAN_PRICE_IDS: Record<string, string | undefined> = {
+    pro: process.env.STRIPE_PRICE_PRO || process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO,
+    creator_plus: process.env.STRIPE_PRICE_CREATOR_PLUS || process.env.NEXT_PUBLIC_STRIPE_PRICE_CREATOR_PLUS,
+  }
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
