@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { DashboardContent } from '.'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -13,6 +15,7 @@ export default async function DashboardPage() {
   const [
     { data: profile },
     { data: ideas },
+    { data: allIdeaStatuses },
     { data: inspirations },
     { data: deals },
     { data: tasks },
@@ -21,7 +24,8 @@ export default async function DashboardPage() {
     { data: contentTypes },
   ] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).single(),
-    supabase.from('ideas').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(10),
+    supabase.from('ideas').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
+    supabase.from('ideas').select('status, pillar_id').eq('user_id', user.id),
     supabase.from('inspirations').select('*').eq('user_id', user.id).eq('is_processed', false).order('created_at', { ascending: false }).limit(5),
     supabase.from('deals').select('*, brands(name)').eq('user_id', user.id).not('status', 'in', '("completed","lost","cancelled")').order('created_at', { ascending: false }).limit(5),
     supabase.from('tasks').select('*').eq('user_id', user.id).eq('is_completed', false).order('due_date', { ascending: true }).limit(5),
@@ -30,34 +34,48 @@ export default async function DashboardPage() {
     supabase.from('content_types').select('id, name, icon, color').eq('user_id', user.id).eq('is_active', true).order('sort_order', { ascending: true }),
   ])
 
-  // Calculate stats with type assertion
-  const ideasTyped = ideas as { status: string; pillar_id: string | null; [key: string]: unknown }[] | null
+  // Use all idea statuses (no limit) for accurate counts
+  const allStatuses = allIdeaStatuses as { status: string; pillar_id: string | null }[] | null
   const revenuesTyped = revenues as { amount: number; date: string; source: string }[] | null
   const contentPillarsTyped = contentPillars as { id: string; name: string; description: string | null; color: string; icon: string }[] | null
   const contentTypesTyped = contentTypes as { id: string; name: string; icon: string; color: string }[] | null
-  
+
+  const countByStatus = (status: string) => {
+    if (status === 'idea') {
+      return allStatuses?.filter(i => i.status === 'idea' || i.status === 'draft' || i.status === 'planned').length || 0
+    }
+    return allStatuses?.filter(i => i.status === status).length || 0
+  }
+
   const stats = {
-    totalIdeas: ideasTyped?.length || 0,
-    draftIdeas: ideasTyped?.filter(i => i.status === 'draft').length || 0,
-    toFilmIdeas: ideasTyped?.filter(i => i.status === 'to_film').length || 0,
-    publishedIdeas: ideasTyped?.filter(i => i.status === 'published').length || 0,
+    totalIdeas: allStatuses?.length || 0,
+    draftIdeas: countByStatus('draft'),
+    toFilmIdeas: countByStatus('to_film'),
+    publishedIdeas: countByStatus('published'),
     pendingInspirations: inspirations?.length || 0,
     activeDeals: deals?.length || 0,
     pendingTasks: tasks?.length || 0,
     monthlyRevenue: revenuesTyped?.reduce((sum, r) => sum + Number(r.amount), 0) || 0,
   }
 
-  // Ideas by status for chart - use brand colors
-  const ideasByStatus = [
-    { status: 'Draft', count: stats.draftIdeas, color: '#9ca3af' },
-    { status: 'To Film', count: stats.toFilmIdeas, color: '#a78bfa' },
-    { status: 'Editing', count: ideasTyped?.filter(i => i.status === 'editing').length || 0, color: '#8b5cf6' },
-    { status: 'Published', count: stats.publishedIdeas, color: '#22c55e' },
+  // Pipeline order — idea bucket absorbs legacy draft/planned
+  const STATUS_PIPELINE = [
+    { status: 'Idea',      key: 'idea',      color: '#f59e0b' },
+    { status: 'Scripted',  key: 'scripted',  color: '#3b82f6' },
+    { status: 'To Film',   key: 'to_film',   color: '#8b5cf6' },
+    { status: 'Filmed',    key: 'filmed',    color: '#a855f7' },
+    { status: 'Editing',   key: 'editing',   color: '#f97316' },
+    { status: 'Scheduled', key: 'scheduled', color: '#06b6d4' },
+    { status: 'Published', key: 'published', color: '#22c55e' },
   ]
+
+  const ideasByStatus = STATUS_PIPELINE
+    .map(s => ({ status: s.status, count: countByStatus(s.key), color: s.color }))
+    .filter(s => s.count > 0)
 
   // Map content pillars with idea counts and parse metadata from icon field
   const pillarsWithData = contentPillarsTyped?.map(pillar => {
-    const ideasForPillar = ideasTyped?.filter(i => i.pillar_id === pillar.id) || []
+    const ideasForPillar = allStatuses?.filter(i => i.pillar_id === pillar.id) || []
     
     // Parse hashtags and contentType from icon field (stored as JSON)
     let hashtags: string[] = []
@@ -75,7 +93,7 @@ export default async function DashboardPage() {
     
     return {
       ...pillar,
-      ideaCount: ideasForPillar.length,
+      ideaCount: (ideasForPillar as { status: string; pillar_id: string | null }[]).length,
       hashtags,
       contentType,
     }

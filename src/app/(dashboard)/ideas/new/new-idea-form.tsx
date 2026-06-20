@@ -52,23 +52,21 @@ type ContentType = Tables<'content_types'>
 type Hashtag = Tables<'hashtags'>
 type FilmingSetup = Tables<'filming_setups'>
 
-type IdeaStatus = 'draft' | 'scripted' | 'planned' | 'to_film' | 'filmed' | 'editing' | 'scheduled' | 'published' | 'archived'
+type IdeaStatus = 'idea' | 'scripted' | 'to_film' | 'filmed' | 'editing' | 'scheduled' | 'published' | 'archived'
 
-const statusConfig: Record<IdeaStatus, { 
-  label: string
-  icon: React.ElementType
-  color: string
-}> = {
-  draft: { label: 'Draft', icon: FileEdit, color: 'text-gray-600' },
-  scripted: { label: 'Scripted', icon: Edit, color: 'text-blue-600' },
-  planned: { label: 'Planned', icon: Calendar, color: 'text-purple-600' },
-  to_film: { label: 'To Film', icon: Video, color: 'text-yellow-600' },
-  filmed: { label: 'Filmed', icon: Video, color: 'text-orange-600' },
-  editing: { label: 'Editing', icon: Play, color: 'text-pink-600' },
-  scheduled: { label: 'Scheduled', icon: Clock, color: 'text-indigo-600' },
-  published: { label: 'Published', icon: Send, color: 'text-green-600' },
-  archived: { label: 'Archived', icon: Archive, color: 'text-gray-500' },
-}
+// Ordered pipeline for the status select
+const STATUS_PIPELINE: { key: IdeaStatus; label: string; icon: React.ElementType; color: string }[] = [
+  { key: 'idea',      label: 'Idea',      icon: Lightbulb, color: 'text-amber-600' },
+  { key: 'scripted',  label: 'Scripted',  icon: Edit,      color: 'text-blue-600' },
+  { key: 'to_film',   label: 'To Film',   icon: Video,     color: 'text-violet-600' },
+  { key: 'filmed',    label: 'Filmed',    icon: Video,     color: 'text-purple-600' },
+  { key: 'editing',   label: 'Editing',   icon: Play,      color: 'text-orange-600' },
+  { key: 'scheduled', label: 'Scheduled', icon: Clock,     color: 'text-cyan-600' },
+  { key: 'published', label: 'Published', icon: Send,      color: 'text-green-600' },
+  { key: 'archived',  label: 'Archived',  icon: Archive,   color: 'text-gray-500' },
+]
+
+const statusConfig = Object.fromEntries(STATUS_PIPELINE.map(s => [s.key, s])) as Record<IdeaStatus, typeof STATUS_PIPELINE[number]>
 
 interface NewIdeaFormProps {
   pillars: ContentPillar[]
@@ -113,7 +111,7 @@ export function NewIdeaForm({
     filming_setup_id: '',
     filming_notes: initialSourceUrl ? `Source: ${initialSourceUrl}` : '',
     priority: 2, // 1=high, 2=medium, 3=low
-    status: 'draft' as IdeaStatus,
+    status: 'idea' as IdeaStatus,
     selected_hashtags: [] as string[],
     platforms: [] as string[],
   })
@@ -147,6 +145,17 @@ export function NewIdeaForm({
         description: 'Title is required.',
         variant: 'destructive',
       })
+      setActiveTab('basic')
+      return
+    }
+
+    if (formData.platforms.length === 0) {
+      toast({
+        title: 'Platform required',
+        description: 'Select at least one platform where this content will be published.',
+        variant: 'destructive',
+      })
+      setActiveTab('basic')
       return
     }
 
@@ -294,6 +303,44 @@ export function NewIdeaForm({
                 </div>
 
                 <div className="space-y-2">
+                  <Label>
+                    Platform(s) <span className="text-red-500">*</span>
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Where will this content be published? (required)</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { id: 'youtube_shorts',  label: 'YouTube Shorts' },
+                      { id: 'youtube',         label: 'YouTube' },
+                      { id: 'tiktok',          label: 'TikTok' },
+                      { id: 'instagram_reels', label: 'Instagram Reels' },
+                      { id: 'instagram_feed',  label: 'Instagram Feed' },
+                      { id: 'facebook',        label: 'Facebook' },
+                      { id: 'linkedin',        label: 'LinkedIn' },
+                      { id: 'twitter',         label: 'X / Twitter' },
+                      { id: 'pinterest',       label: 'Pinterest' },
+                      { id: 'podcast',         label: 'Podcast' },
+                    ].map((p) => (
+                      <Badge
+                        key={p.id}
+                        variant={formData.platforms.includes(p.id) ? 'default' : 'outline'}
+                        className={cn(
+                          'cursor-pointer select-none transition-colors',
+                          formData.platforms.includes(p.id)
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:border-primary hover:text-primary'
+                        )}
+                        onClick={() => togglePlatform(p.id)}
+                      >
+                        {p.label}
+                      </Badge>
+                    ))}
+                  </div>
+                  {formData.platforms.length === 0 && (
+                    <p className="text-xs text-red-500">Select at least one platform</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="hook">Hook</Label>
                   <Textarea
                     id="hook"
@@ -340,17 +387,14 @@ export function NewIdeaForm({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.entries(statusConfig).map(([status, config]) => {
-                          const Icon = config.icon
-                          return (
-                            <SelectItem key={status} value={status}>
-                              <div className="flex items-center gap-2">
-                                <Icon className={cn("h-4 w-4", config.color)} />
-                                {config.label}
-                              </div>
-                            </SelectItem>
-                          )
-                        })}
+                        {STATUS_PIPELINE.map(({ key, label, icon: Icon, color }) => (
+                          <SelectItem key={key} value={key}>
+                            <div className="flex items-center gap-2">
+                              <Icon className={cn('h-4 w-4', color)} />
+                              {label}
+                            </div>
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -392,34 +436,6 @@ export function NewIdeaForm({
 
               {/* Details Tab */}
               <TabsContent value="details" className="mt-0 space-y-6">
-                <div className="space-y-2">
-                  <Label>Platforms</Label>
-                  <p className="text-xs text-muted-foreground">Where will this content be published?</p>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { id: 'youtube_shorts', label: 'YouTube Shorts' },
-                      { id: 'youtube', label: 'YouTube' },
-                      { id: 'tiktok', label: 'TikTok' },
-                      { id: 'instagram_reels', label: 'Instagram Reels' },
-                      { id: 'instagram_feed', label: 'Instagram Feed' },
-                      { id: 'facebook', label: 'Facebook' },
-                      { id: 'linkedin', label: 'LinkedIn' },
-                      { id: 'twitter', label: 'X / Twitter' },
-                      { id: 'pinterest', label: 'Pinterest' },
-                      { id: 'podcast', label: 'Podcast' },
-                    ].map((p) => (
-                      <Badge
-                        key={p.id}
-                        variant={formData.platforms.includes(p.id) ? "default" : "outline"}
-                        className="cursor-pointer select-none"
-                        onClick={() => togglePlatform(p.id)}
-                      >
-                        {p.label}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="filming_notes">Filming Notes</Label>
                   <Textarea

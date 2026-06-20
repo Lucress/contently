@@ -56,7 +56,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { Tables } from '@/types/database'
 import { formatDistanceToNow } from 'date-fns'
 import { enUS } from 'date-fns/locale'
-import { cn } from '@/lib/utils'
+import { cn, STATUS_PIPELINE } from '@/lib/utils'
 
 // Types
 type Idea = Tables<'ideas'> & {
@@ -69,7 +69,7 @@ type ContentPillar = Tables<'content_pillars'>
 type Category = Tables<'categories'>
 type ContentType = Tables<'content_types'>
 
-type IdeaStatus = 'draft' | 'scripted' | 'planned' | 'to_film' | 'filmed' | 'editing' | 'scheduled' | 'published' | 'archived'
+type IdeaStatus = 'idea' | 'scripted' | 'to_film' | 'filmed' | 'editing' | 'scheduled' | 'published' | 'archived'
 
 interface IdeasContentProps {
   ideas: Idea[]
@@ -79,22 +79,24 @@ interface IdeasContentProps {
   userId: string
 }
 
-// Status configuration
-const statusConfig: Record<IdeaStatus, { 
+// Status configuration — 7-step linear pipeline + legacy backward compat
+const statusConfig: Record<string, {
   label: string
   icon: React.ElementType
   color: string
   bgColor: string
 }> = {
-  draft: { label: 'Draft', icon: FileEdit, color: 'text-gray-600', bgColor: 'bg-gray-100 dark:bg-gray-800' },
-  scripted: { label: 'Scripted', icon: Pencil, color: 'text-blue-600', bgColor: 'bg-blue-100 dark:bg-blue-900/30' },
-  planned: { label: 'Planned', icon: Calendar, color: 'text-purple-600', bgColor: 'bg-purple-100 dark:bg-purple-900/30' },
-  to_film: { label: 'To Film', icon: Video, color: 'text-yellow-600', bgColor: 'bg-yellow-100 dark:bg-yellow-900/30' },
-  filmed: { label: 'Filmed', icon: Video, color: 'text-orange-600', bgColor: 'bg-orange-100 dark:bg-orange-900/30' },
-  editing: { label: 'Editing', icon: Play, color: 'text-pink-600', bgColor: 'bg-pink-100 dark:bg-pink-900/30' },
-  scheduled: { label: 'Scheduled', icon: Clock, color: 'text-indigo-600', bgColor: 'bg-indigo-100 dark:bg-indigo-900/30' },
-  published: { label: 'Published', icon: Send, color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/30' },
-  archived: { label: 'Archived', icon: Archive, color: 'text-gray-500', bgColor: 'bg-gray-100 dark:bg-gray-800' },
+  idea:      { label: 'Idea',      icon: Lightbulb, color: 'text-amber-600',  bgColor: 'bg-amber-100 dark:bg-amber-900/30' },
+  scripted:  { label: 'Scripted',  icon: Pencil,    color: 'text-blue-600',   bgColor: 'bg-blue-100 dark:bg-blue-900/30' },
+  to_film:   { label: 'To Film',   icon: Video,     color: 'text-violet-600', bgColor: 'bg-violet-100 dark:bg-violet-900/30' },
+  filmed:    { label: 'Filmed',    icon: Video,     color: 'text-purple-600', bgColor: 'bg-purple-100 dark:bg-purple-900/30' },
+  editing:   { label: 'Editing',   icon: Play,      color: 'text-orange-600', bgColor: 'bg-orange-100 dark:bg-orange-900/30' },
+  scheduled: { label: 'Scheduled', icon: Clock,     color: 'text-cyan-600',   bgColor: 'bg-cyan-100 dark:bg-cyan-900/30' },
+  published: { label: 'Published', icon: Send,      color: 'text-green-600',  bgColor: 'bg-green-100 dark:bg-green-900/30' },
+  archived:  { label: 'Archived',  icon: Archive,   color: 'text-gray-500',   bgColor: 'bg-gray-100 dark:bg-gray-800' },
+  // Legacy: draft/planned both display as Idea
+  draft:     { label: 'Idea',      icon: Lightbulb, color: 'text-amber-600',  bgColor: 'bg-amber-100 dark:bg-amber-900/30' },
+  planned:   { label: 'Idea',      icon: Lightbulb, color: 'text-amber-600',  bgColor: 'bg-amber-100 dark:bg-amber-900/30' },
 }
 
 const priorityConfig: Record<number, { label: string; color: string }> = {
@@ -144,7 +146,11 @@ export function IdeasContent({
         idea.hook?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         idea.description?.toLowerCase().includes(searchQuery.toLowerCase())
       
-      const matchesStatus = filterStatus === 'all' || idea.status === filterStatus
+      const rawStatus = idea.status as string
+      const normalizedStatus = (rawStatus === 'draft' || rawStatus === 'planned') ? 'idea' : rawStatus
+      const matchesStatus = filterStatus === 'all' ||
+        (filterStatus === 'idea' && (rawStatus === 'idea' || rawStatus === 'draft' || rawStatus === 'planned')) ||
+        normalizedStatus === filterStatus
       const matchesPillar = filterPillar === 'all' || idea.pillar_id === filterPillar
 
       return matchesSearch && matchesStatus && matchesPillar
@@ -164,11 +170,13 @@ export function IdeasContent({
     return result
   }, [ideas, searchQuery, filterStatus, filterPillar, sortBy])
 
-  // Status stats
+  // Status stats — normalize legacy draft/planned → idea
   const statusStats = useMemo(() => {
     const stats: Record<string, number> = {}
-    Object.keys(statusConfig).forEach(status => {
-      stats[status] = ideas.filter(i => i.status === status).length
+    ideas.forEach(idea => {
+      const raw = idea.status as string
+      const key = (raw === 'draft' || raw === 'planned') ? 'idea' : raw
+      stats[key] = (stats[key] || 0) + 1
     })
     return stats
   }, [ideas])
@@ -236,21 +244,24 @@ export function IdeasContent({
         >
           All ({ideas.length})
         </button>
-        {Object.entries(statusConfig).map(([status, config]) => {
-          const count = statusStats[status] || 0
+        {STATUS_PIPELINE.map(({ key, label }) => {
+          const config = statusConfig[key]
+          const count = statusStats[key] || 0
           if (count === 0) return null
+          const Icon = config.icon
           return (
             <button
-              key={status}
-              onClick={() => setFilterStatus(status)}
+              key={key}
+              onClick={() => setFilterStatus(key)}
               className={cn(
                 "px-3 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5",
-                filterStatus === status 
-                  ? "bg-primary text-primary-foreground" 
+                filterStatus === key
+                  ? "bg-primary text-primary-foreground"
                   : cn(config.bgColor, config.color, "hover:opacity-80")
               )}
             >
-              {config.label} ({count})
+              <Icon className="h-3 w-3" />
+              {label} ({count})
             </button>
           )
         })}
@@ -406,7 +417,8 @@ function IdeaGridCard({ idea, onDelete, onLogAnalytics, router }: {
   onLogAnalytics: () => void
   router: ReturnType<typeof useRouter>
 }) {
-  const status = statusConfig[idea.status as IdeaStatus] || statusConfig.draft
+  const normalizedIdeaStatus = (() => { const s = idea.status as string; return (s === 'draft' || s === 'planned') ? 'idea' : s })()
+  const status = statusConfig[normalizedIdeaStatus] || statusConfig.idea
   const StatusIcon = status.icon
   const priority = priorityConfig[idea.priority as number]
   const platforms = (idea as any).platforms as string[] | null
@@ -513,7 +525,8 @@ function IdeaListRow({ idea, onDelete, onLogAnalytics, router }: {
   onLogAnalytics: () => void
   router: ReturnType<typeof useRouter>
 }) {
-  const status = statusConfig[idea.status as IdeaStatus] || statusConfig.draft
+  const normalizedIdeaStatus = (() => { const s = idea.status as string; return (s === 'draft' || s === 'planned') ? 'idea' : s })()
+  const status = statusConfig[normalizedIdeaStatus] || statusConfig.idea
   const StatusIcon = status.icon
   const priority = priorityConfig[idea.priority as number]
 

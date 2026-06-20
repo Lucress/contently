@@ -138,6 +138,19 @@ export function AnalyticsContent({
 }: AnalyticsContentProps) {
   const [timeRange, setTimeRange] = useState<TimeRange>('30d')
   const [activeView, setActiveView] = useState<'overview' | 'content' | 'revenue' | 'performance'>('overview')
+  const [platformFilter, setPlatformFilter] = useState<string>('all')
+
+  // Platforms that actually have analytics data logged
+  const availablePlatforms = useMemo(
+    () => Array.from(new Set(videoAnalytics.map(v => v.platform))).sort(),
+    [videoAnalytics]
+  )
+
+  // Video analytics filtered by selected platform
+  const filteredVideoAnalytics = useMemo(
+    () => platformFilter === 'all' ? videoAnalytics : videoAnalytics.filter(v => v.platform === platformFilter),
+    [videoAnalytics, platformFilter]
+  )
 
   const dateRange = useMemo(() => {
     const now = new Date()
@@ -167,7 +180,7 @@ export function AnalyticsContent({
   const metrics = useMemo(() => {
     const totalIdeas = filteredIdeas.length
     const publishedIdeas = filteredIdeas.filter((i) => i.status === 'published').length
-    const scriptingIdeas = filteredIdeas.filter((i) => i.status === 'scripting').length
+    const scriptingIdeas = filteredIdeas.filter((i) => i.status === 'scripted' || i.status === 'idea' || i.status === 'draft').length
     const totalInspirations = filteredInspirations.length
     const convertedInspirations = filteredInspirations.filter((i) => i.status === 'converted').length
     const totalRevenue = filteredRevenues.reduce((sum, r) => sum + r.amount, 0)
@@ -229,14 +242,15 @@ export function AnalyticsContent({
     return Object.entries(statuses).map(([status, count]) => ({ status, count }))
   }, [filteredIdeas])
 
-  // ── Performance (video analytics) metrics ──────────────────────────────────
+  // ── Performance (video analytics) metrics — respects platform filter ────────
   const performanceMetrics = useMemo(() => {
-    const totalViews = videoAnalytics.reduce((s, v) => s + (v.views || 0), 0)
-    const totalLikes = videoAnalytics.reduce((s, v) => s + (v.likes || 0), 0)
-    const totalComments = videoAnalytics.reduce((s, v) => s + (v.comments || 0), 0)
-    const totalShares = videoAnalytics.reduce((s, v) => s + (v.shares || 0), 0)
+    const totalViews = filteredVideoAnalytics.reduce((s, v) => s + (v.views || 0), 0)
+    const totalLikes = filteredVideoAnalytics.reduce((s, v) => s + (v.likes || 0), 0)
+    const totalComments = filteredVideoAnalytics.reduce((s, v) => s + (v.comments || 0), 0)
+    const totalShares = filteredVideoAnalytics.reduce((s, v) => s + (v.shares || 0), 0)
     const avgEngagement = totalViews > 0 ? ((totalLikes + totalComments + totalShares) / totalViews) * 100 : 0
 
+    // Platform breakdown always uses ALL analytics (so we see the full picture regardless of filter)
     const byPlatform: Record<string, { views: number; likes: number; count: number }> = {}
     videoAnalytics.forEach((v) => {
       if (!byPlatform[v.platform]) byPlatform[v.platform] = { views: 0, likes: 0, count: 0 }
@@ -249,7 +263,7 @@ export function AnalyticsContent({
       .sort((a, b) => b.views - a.views)
 
     const byPillar: Record<string, { name: string; color: string; views: number; count: number }> = {}
-    videoAnalytics.forEach((v) => {
+    filteredVideoAnalytics.forEach((v) => {
       if (v.idea?.content_pillar && v.idea.pillar_id) {
         const id = v.idea.pillar_id
         if (!byPillar[id]) byPillar[id] = { name: v.idea.content_pillar.name, color: v.idea.content_pillar.color, views: 0, count: 0 }
@@ -268,9 +282,9 @@ export function AnalyticsContent({
       platformBreakdown,
       bestPlatform: platformBreakdown[0]?.platform || null,
       pillarPerformance,
-      topVideos: [...videoAnalytics].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 10),
+      topVideos: [...filteredVideoAnalytics].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 10),
     }
-  }, [videoAnalytics])
+  }, [filteredVideoAnalytics, videoAnalytics])
 
   // ── Formatters ─────────────────────────────────────────────────────────────
   const formatCurrency = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
@@ -506,6 +520,28 @@ export function AnalyticsContent({
 
         {/* ── Performance (video analytics) ── */}
         <TabsContent value="performance" className="space-y-6">
+          {videoAnalytics.length > 0 && (
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                {platformFilter === 'all'
+                  ? `${videoAnalytics.length} entries across all platforms`
+                  : `${filteredVideoAnalytics.length} entries on ${PLATFORM_LABELS[platformFilter] || platformFilter}`}
+              </p>
+              <Select value={platformFilter} onValueChange={setPlatformFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="All Platforms" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Platforms</SelectItem>
+                  {availablePlatforms.map((p) => (
+                    <SelectItem key={p} value={p}>
+                      {PLATFORM_LABELS[p] || p}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           {videoAnalytics.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-16 text-center">
@@ -516,6 +552,14 @@ export function AnalyticsContent({
                 <p className="text-muted-foreground text-sm max-w-xs">
                   When you log analytics for a published idea on the Ideas page, they'll appear here.
                 </p>
+              </CardContent>
+            </Card>
+          ) : filteredVideoAnalytics.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                <BarChart2 className="h-10 w-10 text-muted-foreground mb-3" />
+                <h3 className="text-base font-semibold mb-1">No data for {PLATFORM_LABELS[platformFilter] || platformFilter}</h3>
+                <p className="text-muted-foreground text-sm">Try selecting a different platform or "All Platforms".</p>
               </CardContent>
             </Card>
           ) : (
