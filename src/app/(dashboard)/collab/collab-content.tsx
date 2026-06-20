@@ -91,8 +91,13 @@ const dealStatusConfig: Record<string, {
   negotiating: { label: 'Negotiating', icon: Handshake, color: 'text-yellow-600', bgColor: 'bg-yellow-100 dark:bg-yellow-900/30' },
   proposal_sent: { label: 'Proposal Sent', icon: FileText, color: 'text-brand-600', bgColor: 'bg-brand-100 dark:bg-brand-900/30' },
   accepted: { label: 'Accepted', icon: CheckCircle2, color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/30' },
+  in_progress: { label: 'In Progress', icon: Clock, color: 'text-orange-600', bgColor: 'bg-orange-100 dark:bg-orange-900/30' },
+  delivered: { label: 'Delivered', icon: Send, color: 'text-teal-600', bgColor: 'bg-teal-100 dark:bg-teal-900/30' },
+  invoiced: { label: 'Invoiced', icon: FileText, color: 'text-purple-600', bgColor: 'bg-purple-100 dark:bg-purple-900/30' },
+  paid: { label: 'Paid', icon: DollarSign, color: 'text-emerald-700', bgColor: 'bg-emerald-100 dark:bg-emerald-900/40' },
   completed: { label: 'Completed', icon: CheckCircle2, color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/30' },
   lost: { label: 'Lost', icon: XCircle, color: 'text-red-600', bgColor: 'bg-red-100 dark:bg-red-900/30' },
+  cancelled: { label: 'Cancelled', icon: XCircle, color: 'text-red-500', bgColor: 'bg-red-50 dark:bg-red-900/20' },
 }
 
 const pipelineStages: DealStatus[] = ['lead', 'contacted', 'negotiating', 'proposal_sent', 'accepted', 'completed']
@@ -169,8 +174,8 @@ export function CollabContent({
   const stats = useMemo(() => {
     const activeDeals = deals.filter(d => !['completed', 'lost', 'cancelled'].includes(d.status))
     const wonDeals = deals.filter(d => d.status === 'completed' || d.status === 'paid')
-    const totalPipeline = activeDeals.reduce((sum, d) => sum + ((d as any).value || 0), 0)
-    const totalWon = wonDeals.reduce((sum, d) => sum + ((d as any).value || 0), 0)
+    const totalPipeline = activeDeals.reduce((sum, d) => sum + ((d as any).budget || 0), 0)
+    const totalWon = wonDeals.reduce((sum, d) => sum + ((d as any).budget || 0), 0)
     
     return {
       totalBrands: brands.length,
@@ -453,6 +458,44 @@ export function CollabContent({
       if (error) throw error
 
       setDeals(prev => prev.map(d => d.id === deal.id ? { ...d, status: newStatus } : d))
+
+      // Auto-create/update revenue when deal reaches a money state
+      const moneyStatuses: DealStatus[] = ['invoiced', 'paid', 'completed']
+      const dealBudget = (deal as any).budget
+      if (moneyStatuses.includes(newStatus) && dealBudget && dealBudget > 0) {
+        const isReceived = newStatus === 'paid' || newStatus === 'completed'
+        const today = new Date().toISOString().split('T')[0]
+
+        const { data: existingRevenue } = await supabaseMutation
+          .from('revenues')
+          .select('id')
+          .eq('deal_id', deal.id)
+          .maybeSingle()
+
+        const revenueData = {
+          user_id: userId,
+          deal_id: deal.id,
+          brand_id: (deal as any).brand_id,
+          source: 'sponsorship',
+          description: deal.title,
+          amount: dealBudget,
+          currency: (deal as any).currency || 'EUR',
+          date: today,
+          is_received: isReceived,
+          received_at: isReceived ? new Date().toISOString() : null,
+        }
+
+        if (existingRevenue) {
+          await supabaseMutation.from('revenues').update(revenueData).eq('id', (existingRevenue as any).id)
+        } else {
+          await supabaseMutation.from('revenues').insert(revenueData)
+        }
+
+        toast({
+          title: 'Revenue updated',
+          description: `Revenue of ${formatCurrency(dealBudget, (deal as any).currency || 'EUR')} recorded for "${deal.title}".`,
+        })
+      }
     } catch (error) {
       console.error(error)
       toast({
@@ -656,18 +699,58 @@ export function CollabContent({
                             </div>
                           )}
                           
-                          {(deal as any).value && (
+                          {(deal as any).budget > 0 && (
                             <p className="text-sm font-semibold text-primary">
-                              {formatCurrency((deal as any).value, deal.currency)}
+                              {formatCurrency((deal as any).budget, (deal as any).currency || 'EUR')}
                             </p>
                           )}
-                          
+
                           {deal.deadline && (
                             <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
                               {format(new Date(deal.deadline), 'd MMM', { locale: enUS })}
                             </p>
                           )}
+
+                          {/* Inline status badge — click to change status without opening the edit dialog */}
+                          {(() => {
+                            const cfg = dealStatusConfig[deal.status] || dealStatusConfig.lead
+                            const StatusIcon = cfg.icon
+                            return (
+                              <div className="mt-2 pt-2 border-t border-border/50">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                    <button className={cn(
+                                      'flex items-center gap-1 text-xs px-2 py-0.5 rounded-full w-full justify-center hover:opacity-80 transition-opacity',
+                                      cfg.bgColor, cfg.color
+                                    )}>
+                                      <StatusIcon className="h-3 w-3 shrink-0" />
+                                      {cfg.label}
+                                    </button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="center" onClick={(e) => e.stopPropagation()}>
+                                    {(Object.entries(dealStatusConfig) as [DealStatus, typeof cfg][])
+                                      .filter(([s]) => s !== deal.status)
+                                      .map(([s, c]) => {
+                                        const Icon = c.icon
+                                        return (
+                                          <DropdownMenuItem
+                                            key={s}
+                                            onClick={(e) => {
+                                              e.stopPropagation()
+                                              handleDealStatusChange(deal, s)
+                                            }}
+                                          >
+                                            <Icon className="h-4 w-4 mr-2" />
+                                            {c.label}
+                                          </DropdownMenuItem>
+                                        )
+                                      })}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            )
+                          })()}
                         </motion.div>
                       ))
                     ) : (

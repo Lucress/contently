@@ -30,18 +30,18 @@ export default async function RevenuePage() {
     .gte('snapshot_date', format(sixMonthsAgo, 'yyyy-MM-dd'))
     .order('snapshot_date')
 
-  // Fetch won deals for revenue tracking
+  // Fetch completed/paid/invoiced deals for revenue tracking
   const { data: wonDeals } = await supabase
     .from('deals')
     .select(`
       id,
       title,
-      amount,
+      budget,
       currency,
       brand:brands(id, name)
     `)
     .eq('user_id', user.id)
-    .eq('status', 'won')
+    .in('status', ['completed', 'paid', 'invoiced'])
     .order('created_at', { ascending: false })
 
   return (
