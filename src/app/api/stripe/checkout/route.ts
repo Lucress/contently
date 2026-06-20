@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     
     if (!user) {
       return NextResponse.json(
-        { error: 'Non autorisé' },
+        { error: 'Unauthorized' },
         { status: 401 }
       )
     }
@@ -20,7 +20,14 @@ export async function POST(req: NextRequest) {
     const plan = PLANS[planId as keyof typeof PLANS]
     if (!plan || !('priceId' in plan) || !plan.priceId) {
       return NextResponse.json(
-        { error: 'Plan invalide' },
+        { error: 'Stripe price ID not configured. Add NEXT_PUBLIC_STRIPE_PRICE_PRO and NEXT_PUBLIC_STRIPE_PRICE_CREATOR_PLUS to your environment variables.' },
+        { status: 400 }
+      )
+    }
+
+    if ((plan.priceId as string).startsWith('prod_')) {
+      return NextResponse.json(
+        { error: 'Invalid Stripe price ID — you set a Product ID (prod_…) instead of a Price ID (price_…). Go to Stripe Dashboard → Products → your plan → copy the Price ID.' },
         { status: 400 }
       )
     }
@@ -39,7 +46,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Checkout error:', error)
     return NextResponse.json(
-      { error: 'Erreur lors de la création de la session' },
+      { error: 'Failed to create checkout session' },
       { status: 500 }
     )
   }

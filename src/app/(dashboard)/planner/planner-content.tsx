@@ -1,11 +1,9 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { createClient, createUntypedClient } from '@/lib/supabase/client'
+import { createUntypedClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import { 
-  Calendar as CalendarIcon,
+import {
   ChevronLeft,
   ChevronRight,
   Plus,
@@ -15,7 +13,6 @@ import {
   Send,
   MoreVertical,
   Trash2,
-  Edit,
   Eye,
   GripVertical,
   CalendarDays,
@@ -57,7 +54,6 @@ import {
   endOfMonth,
   eachDayOfInterval,
   isSameMonth,
-  isSameDay,
   isToday,
   addMonths,
   subMonths,
@@ -145,7 +141,6 @@ export function PlannerContent({
   const [pendingPublishTime, setPendingPublishTime] = useState<string>('12:00')
 
   const { toast } = useToast()
-  const supabase = createClient()
   const supabaseMutation = createUntypedClient()
 
   // Calculate days to display based on view mode
@@ -284,15 +279,23 @@ export function PlannerContent({
 
       setPlannerItems(prev => prev.filter(i => i.id !== item.id))
 
-      // Re-add idea to unscheduled if it was scheduled
+      // Re-add idea to the correct sidebar list and reset status
       if (item.idea) {
-        setUnscheduledIdeas(prev => [item.idea as UnscheduledIdea, ...prev])
-        
-        // Reset idea status
-        await supabaseMutation
-          .from('ideas')
-          .update({ status: 'scripted', scheduled_date: null })
-          .eq('id', item.idea_id)
+        if (item.item_type === 'publishing') {
+          // Was a publish slot — put back in filmed list
+          setFilmedIdeas(prev => [item.idea as FilmedIdea, ...prev])
+          await supabaseMutation
+            .from('ideas')
+            .update({ status: 'filmed', publish_date: null })
+            .eq('id', item.idea_id)
+        } else {
+          // Was a filming/editing slot — put back in unscheduled list
+          setUnscheduledIdeas(prev => [item.idea as UnscheduledIdea, ...prev])
+          await supabaseMutation
+            .from('ideas')
+            .update({ status: 'scripted', scheduled_date: null })
+            .eq('id', item.idea_id)
+        }
       }
 
       toast({
@@ -481,7 +484,7 @@ export function PlannerContent({
               "grid flex-1",
               viewMode === 'week' ? "grid-cols-7" : "grid-cols-7 auto-rows-fr"
             )}>
-              {displayDays.map((day, index) => {
+              {displayDays.map((day) => {
                 const dateKey = format(day, 'yyyy-MM-dd')
                 const dayItems = itemsByDate[dateKey] || []
                 const isCurrentMonth = isSameMonth(day, currentDate)

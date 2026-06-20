@@ -844,14 +844,14 @@ export function CollabContent({
                     </a>
                   )}
                   {brand.website && (
-                    <a 
-                      href={brand.website}
+                    <a
+                      href={brand.website.startsWith('http') ? brand.website : `https://${brand.website}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
                     >
                       <Globe className="h-4 w-4" />
-                      {new URL(brand.website).hostname}
+                      {(() => { try { return new URL(brand.website.startsWith('http') ? brand.website : `https://${brand.website}`).hostname } catch { return brand.website } })()}
                     </a>
                   )}
                 </div>
