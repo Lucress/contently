@@ -79,7 +79,7 @@ type ScriptBlock = Tables<'script_blocks'>
 type BrollItem = Tables<'broll_items'>
 type Hashtag = Tables<'hashtags'>
 
-type IdeaStatus = 'draft' | 'scripted' | 'planned' | 'to_film' | 'filmed' | 'editing' | 'scheduled' | 'published' | 'archived'
+type IdeaStatus = 'idea' | 'scripted' | 'to_film' | 'filmed' | 'editing' | 'scheduled' | 'published' | 'archived'
 
 interface IdeaDetailContentProps {
   idea: Idea
@@ -90,22 +90,24 @@ interface IdeaDetailContentProps {
   userId: string
 }
 
-const statusConfig: Record<IdeaStatus, { 
+const statusConfig: Record<string, {
   label: string
   icon: React.ElementType
   color: string
   bgColor: string
   next?: IdeaStatus
 }> = {
-  draft: { label: 'Draft', icon: FileEdit, color: 'text-gray-600', bgColor: 'bg-gray-100 dark:bg-gray-800', next: 'scripted' },
-  scripted: { label: 'Scripted', icon: Edit, color: 'text-blue-600', bgColor: 'bg-blue-100 dark:bg-blue-900/30', next: 'planned' },
-  planned: { label: 'Planned', icon: Calendar, color: 'text-purple-600', bgColor: 'bg-purple-100 dark:bg-purple-900/30', next: 'to_film' },
-  to_film: { label: 'To Film', icon: Video, color: 'text-yellow-600', bgColor: 'bg-yellow-100 dark:bg-yellow-900/30', next: 'filmed' },
-  filmed: { label: 'Filmed', icon: Video, color: 'text-orange-600', bgColor: 'bg-orange-100 dark:bg-orange-900/30', next: 'editing' },
-  editing: { label: 'Editing', icon: Play, color: 'text-pink-600', bgColor: 'bg-pink-100 dark:bg-pink-900/30', next: 'scheduled' },
-  scheduled: { label: 'Scheduled', icon: Clock, color: 'text-indigo-600', bgColor: 'bg-indigo-100 dark:bg-indigo-900/30', next: 'published' },
-  published: { label: 'Published', icon: Send, color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/30' },
-  archived: { label: 'Archived', icon: Archive, color: 'text-gray-500', bgColor: 'bg-gray-100 dark:bg-gray-800' },
+  idea:      { label: 'Idea',      icon: FileEdit,  color: 'text-amber-600',  bgColor: 'bg-amber-100 dark:bg-amber-900/30',   next: 'scripted' },
+  scripted:  { label: 'Scripted',  icon: Edit,      color: 'text-blue-600',   bgColor: 'bg-blue-100 dark:bg-blue-900/30',     next: 'to_film' },
+  to_film:   { label: 'To Film',   icon: Video,     color: 'text-violet-600', bgColor: 'bg-violet-100 dark:bg-violet-900/30', next: 'filmed' },
+  filmed:    { label: 'Filmed',    icon: Video,     color: 'text-purple-600', bgColor: 'bg-purple-100 dark:bg-purple-900/30', next: 'editing' },
+  editing:   { label: 'Editing',   icon: Play,      color: 'text-orange-600', bgColor: 'bg-orange-100 dark:bg-orange-900/30', next: 'scheduled' },
+  scheduled: { label: 'Scheduled', icon: Clock,     color: 'text-cyan-600',   bgColor: 'bg-cyan-100 dark:bg-cyan-900/30',     next: 'published' },
+  published: { label: 'Published', icon: Send,      color: 'text-green-600',  bgColor: 'bg-green-100 dark:bg-green-900/30' },
+  archived:  { label: 'Archived',  icon: Archive,   color: 'text-gray-500',   bgColor: 'bg-gray-100 dark:bg-gray-800' },
+  // Legacy — normalize to idea for display
+  draft:     { label: 'Idea',      icon: FileEdit,  color: 'text-amber-600',  bgColor: 'bg-amber-100 dark:bg-amber-900/30',   next: 'scripted' },
+  planned:   { label: 'Idea',      icon: FileEdit,  color: 'text-amber-600',  bgColor: 'bg-amber-100 dark:bg-amber-900/30',   next: 'scripted' },
 }
 
 const priorityConfig: Record<number, { label: string; color: string }> = {
@@ -145,7 +147,8 @@ export function IdeaDetailContent({
   const supabase = createClient()
   const supabaseMutation = createUntypedClient()
 
-  const status = statusConfig[idea.status as IdeaStatus]
+  const normalizedStatus = (() => { const s = idea.status as string; return (s === 'draft' || s === 'planned') ? 'idea' : s })()
+  const status = statusConfig[normalizedStatus] || statusConfig.idea
   const StatusIcon = status.icon
   const priority = priorityConfig[idea.priority as number] || priorityConfig[2]
 
@@ -422,8 +425,8 @@ export function IdeaDetailContent({
         
         <div className="flex items-center gap-2">
           {status.next && (
-            <Button onClick={() => handleStatusChange(status.next!)}>
-              Move to "{statusConfig[status.next].label}"
+            <Button onClick={() => handleStatusChange(status.next as IdeaStatus)}>
+              Move to &quot;{statusConfig[status.next as string]?.label}&quot;
             </Button>
           )}
           <DropdownMenu>
@@ -440,13 +443,15 @@ export function IdeaDetailContent({
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {Object.entries(statusConfig).map(([key, config]) => {
-                if (key === idea.status) return null
+              {(['idea','scripted','to_film','filmed','editing','scheduled','published','archived'] as IdeaStatus[]).map((key) => {
+                const config = statusConfig[key]
+                const normalizedCurrent = (idea.status as string) === 'draft' || (idea.status as string) === 'planned' ? 'idea' : idea.status
+                if (key === normalizedCurrent) return null
                 const Icon = config.icon
                 return (
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     key={key}
-                    onClick={() => handleStatusChange(key as IdeaStatus)}
+                    onClick={() => handleStatusChange(key)}
                   >
                     <Icon className={cn("h-4 w-4 mr-2", config.color)} />
                     {config.label}

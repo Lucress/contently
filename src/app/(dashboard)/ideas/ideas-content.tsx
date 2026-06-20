@@ -8,19 +8,17 @@ import {
   Lightbulb,
   Plus,
   Search,
-  Calendar,
   Trash2,
   Pencil,
-  Eye,
   Grid3X3,
   LayoutList,
   Clock,
   Play,
-  FileEdit,
   Send,
   Archive,
   Video,
   BarChart2,
+  ChevronDown,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -52,6 +50,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { useToast } from '@/components/ui/use-toast'
 import { Tables } from '@/types/database'
 import { formatDistanceToNow } from 'date-fns'
@@ -210,6 +214,23 @@ export function IdeasContent({
     }
   }
 
+  const handleStatusChange = async (ideaId: string, newStatus: string) => {
+    try {
+      const { error } = await supabaseMutation
+        .from('ideas')
+        .update({ status: newStatus })
+        .eq('id', ideaId)
+      if (error) throw error
+      setIdeas(prev => prev.map(i => i.id === ideaId ? { ...i, status: newStatus as Idea['status'] } : i))
+      toast({
+        title: 'Status updated',
+        description: `Moved to "${statusConfig[newStatus]?.label || newStatus}"`,
+      })
+    } catch {
+      toast({ title: 'Error', description: 'Could not update status.', variant: 'destructive' })
+    }
+  }
+
   return (
     <div className="p-6 lg:p-8 space-y-6">
       {/* Header */}
@@ -359,6 +380,7 @@ export function IdeasContent({
               idea={idea}
               onDelete={() => setDeleteIdea(idea)}
               onLogAnalytics={() => setAnalyticsIdea(idea)}
+              onStatusChange={handleStatusChange}
               router={router}
             />
           ))}
@@ -371,6 +393,7 @@ export function IdeasContent({
               idea={idea}
               onDelete={() => setDeleteIdea(idea)}
               onLogAnalytics={() => setAnalyticsIdea(idea)}
+              onStatusChange={handleStatusChange}
               router={router}
             />
           ))}
@@ -411,10 +434,11 @@ export function IdeasContent({
 }
 
 // Grid Card Component
-function IdeaGridCard({ idea, onDelete, onLogAnalytics, router }: {
+function IdeaGridCard({ idea, onDelete, onLogAnalytics, onStatusChange, router }: {
   idea: Idea
   onDelete: () => void
   onLogAnalytics: () => void
+  onStatusChange: (ideaId: string, newStatus: string) => void
   router: ReturnType<typeof useRouter>
 }) {
   const normalizedIdeaStatus = (() => { const s = idea.status as string; return (s === 'draft' || s === 'planned') ? 'idea' : s })()
@@ -424,21 +448,20 @@ function IdeaGridCard({ idea, onDelete, onLogAnalytics, router }: {
   const platforms = (idea as any).platforms as string[] | null
 
   return (
-    <div className="bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-shadow group">
-      <div className="p-4 space-y-3">
-        {/* Title */}
-        <button onClick={() => router.push(`/ideas/${idea.id}`)} className="block text-left w-full">
-          <h3 className="font-medium line-clamp-2 group-hover:text-primary transition-colors">
-            {idea.title}
-          </h3>
-        </button>
+    <div className="bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-shadow group flex flex-col">
+      {/* Clickable body — navigates to idea detail */}
+      <div
+        className="p-4 space-y-3 flex-1 cursor-pointer"
+        onClick={() => router.push(`/ideas/${idea.id}`)}
+      >
+        <h3 className="font-medium line-clamp-2 group-hover:text-primary transition-colors">
+          {idea.title}
+        </h3>
 
-        {/* Hook */}
         {idea.hook && (
           <p className="text-sm text-muted-foreground line-clamp-2">{idea.hook}</p>
         )}
 
-        {/* Tags */}
         <div className="flex flex-wrap gap-1.5">
           {idea.content_pillar && (
             <Badge
@@ -454,7 +477,6 @@ function IdeaGridCard({ idea, onDelete, onLogAnalytics, router }: {
           )}
         </div>
 
-        {/* Platform badges */}
         {platforms && platforms.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {platforms.map((p) => (
@@ -464,13 +486,38 @@ function IdeaGridCard({ idea, onDelete, onLogAnalytics, router }: {
             ))}
           </div>
         )}
+      </div>
 
-        {/* Footer */}
+      {/* Footer — not part of the navigation area */}
+      <div className="px-4 pb-4 space-y-2">
         <div className="flex items-center justify-between pt-2 border-t">
-          <Badge className={cn('gap-1', status.bgColor, status.color)}>
-            <StatusIcon className="h-3 w-3" />
-            {status.label}
-          </Badge>
+          {/* Inline editable status */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Badge className={cn('gap-1 cursor-pointer hover:opacity-80 select-none', status.bgColor, status.color)}>
+                <StatusIcon className="h-3 w-3" />
+                {status.label}
+                <ChevronDown className="h-3 w-3 ml-0.5" />
+              </Badge>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
+              {STATUS_PIPELINE.map(({ key, label }) => {
+                const s = statusConfig[key]
+                const Icon = s.icon
+                return (
+                  <DropdownMenuItem
+                    key={key}
+                    onClick={() => onStatusChange(idea.id, key)}
+                    className={cn(normalizedIdeaStatus === key && 'font-semibold bg-muted')}
+                  >
+                    <Icon className={cn('h-4 w-4 mr-2', s.color)} />
+                    {label}
+                  </DropdownMenuItem>
+                )
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {priority && (
             <div className="flex items-center gap-1">
               <div className={cn('w-2 h-2 rounded-full', priority.color)} />
@@ -479,39 +526,27 @@ function IdeaGridCard({ idea, onDelete, onLogAnalytics, router }: {
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col gap-2 pt-2">
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={() => router.push(`/production?id=${idea.id}`)}
-            >
-              <Pencil className="h-3.5 w-3.5 mr-1.5" />
-              Edit
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-              onClick={onDelete}
-            >
-              <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-              Delete
-            </Button>
-          </div>
+        <div className="flex gap-2">
           {idea.status === 'published' && (
             <Button
               variant="outline"
               size="sm"
-              className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-              onClick={onLogAnalytics}
+              className="flex-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+              onClick={(e) => { e.stopPropagation(); onLogAnalytics() }}
             >
               <BarChart2 className="h-3.5 w-3.5 mr-1.5" />
               Log Analytics
             </Button>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+            onClick={(e) => { e.stopPropagation(); onDelete() }}
+          >
+            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+            Delete
+          </Button>
         </div>
       </div>
     </div>
@@ -519,10 +554,11 @@ function IdeaGridCard({ idea, onDelete, onLogAnalytics, router }: {
 }
 
 // List Row Component
-function IdeaListRow({ idea, onDelete, onLogAnalytics, router }: {
+function IdeaListRow({ idea, onDelete, onLogAnalytics, onStatusChange, router }: {
   idea: Idea
   onDelete: () => void
   onLogAnalytics: () => void
+  onStatusChange: (ideaId: string, newStatus: string) => void
   router: ReturnType<typeof useRouter>
 }) {
   const normalizedIdeaStatus = (() => { const s = idea.status as string; return (s === 'draft' || s === 'planned') ? 'idea' : s })()
@@ -531,18 +567,39 @@ function IdeaListRow({ idea, onDelete, onLogAnalytics, router }: {
   const priority = priorityConfig[idea.priority as number]
 
   return (
-    <div className="bg-card border rounded-lg p-4 hover:shadow-md transition-shadow">
+    <div
+      className="bg-card border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+      onClick={() => router.push(`/ideas/${idea.id}`)}
+    >
       <div className="flex items-center gap-4">
-        {/* Status Icon */}
-        <div className={cn("p-2 rounded-lg shrink-0", status.bgColor)}>
-          <StatusIcon className={cn("h-4 w-4", status.color)} />
-        </div>
+        {/* Inline editable status icon */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+            <div className={cn("p-2 rounded-lg shrink-0 cursor-pointer hover:opacity-80", status.bgColor)}>
+              <StatusIcon className={cn("h-4 w-4", status.color)} />
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
+            {STATUS_PIPELINE.map(({ key, label }) => {
+              const s = statusConfig[key]
+              const Icon = s.icon
+              return (
+                <DropdownMenuItem
+                  key={key}
+                  onClick={() => onStatusChange(idea.id, key)}
+                  className={cn(normalizedIdeaStatus === key && 'font-semibold bg-muted')}
+                >
+                  <Icon className={cn('h-4 w-4 mr-2', s.color)} />
+                  {label}
+                </DropdownMenuItem>
+              )
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <button onClick={() => router.push(`/ideas/${idea.id}`)} className="hover:text-primary transition-colors text-left">
-            <h3 className="font-medium truncate">{idea.title}</h3>
-          </button>
+          <h3 className="font-medium truncate hover:text-primary transition-colors">{idea.title}</h3>
           <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
             {idea.content_pillar && (
               <span style={{ color: idea.content_pillar.color }}>
@@ -565,11 +622,12 @@ function IdeaListRow({ idea, onDelete, onLogAnalytics, router }: {
 
         {/* Status Badge */}
         <Badge className={cn("hidden md:flex gap-1 shrink-0", status.bgColor, status.color)}>
+          <StatusIcon className="h-3 w-3" />
           {status.label}
         </Badge>
 
         {/* Actions */}
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
           {idea.status === 'published' && (
             <Button
               variant="ghost"
@@ -584,7 +642,8 @@ function IdeaListRow({ idea, onDelete, onLogAnalytics, router }: {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/production?id=${idea.id}`)}
+            onClick={() => router.push(`/ideas/${idea.id}`)}
+            title="Open"
           >
             <Pencil className="h-4 w-4" />
           </Button>
