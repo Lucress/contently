@@ -899,12 +899,10 @@ export function EmailHubContent({
             </div>
 
             {accountForm.provider === 'gmail' ? (
-              <div className="bg-muted/50 rounded-lg p-4 text-sm">
-                <p className="mb-2">
-                  You will be redirected to Google to authorize access to your Gmail account.
-                </p>
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 text-sm">
+                <p className="font-medium mb-1">Gmail OAuth — Coming Soon</p>
                 <p className="text-muted-foreground">
-                  Permissions requested: read and send emails.
+                  Gmail OAuth integration is not yet available. Please use IMAP/SMTP instead. For Gmail, enable "App Passwords" in your Google account and use those credentials with IMAP.
                 </p>
               </div>
             ) : (
@@ -978,8 +976,8 @@ export function EmailHubContent({
             <Button variant="outline" onClick={() => setIsAccountDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddAccount} disabled={isLoading}>
-              {accountForm.provider === 'gmail' ? 'Connect with Google' : 'Add Account'}
+            <Button onClick={handleAddAccount} disabled={isLoading || accountForm.provider === 'gmail'}>
+              {accountForm.provider === 'gmail' ? 'Coming Soon' : 'Add Account'}
             </Button>
           </DialogFooter>
         </DialogContent>

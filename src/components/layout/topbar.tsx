@@ -97,7 +97,6 @@ export function Topbar({ user, profile, subscription }: TopbarProps) {
         {/* Notifications */}
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-4 w-4" />
-          <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-primary rounded-full" />
         </Button>
 
         {/* Theme Toggle */}
@@ -139,13 +138,13 @@ export function Topbar({ user, profile, subscription }: TopbarProps) {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/settings/profile" className="flex items-center">
+              <Link href="/settings" className="flex items-center">
                 <User className="mr-2 h-4 w-4" />
                 Profile
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/settings/billing" className="flex items-center">
+              <Link href="/settings?tab=billing" className="flex items-center">
                 <CreditCard className="mr-2 h-4 w-4" />
                 Subscription
               </Link>

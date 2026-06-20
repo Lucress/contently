@@ -876,7 +876,7 @@ export function DashboardContent({
                     {inspirations.map((inspiration) => (
                       <Link
                         key={inspiration.id}
-                        href={`/inspirations/${inspiration.id}`}
+                        href={`/inspirations`}
                         className="block p-3 rounded-lg bg-brand-50 dark:bg-brand-900/20 hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors"
                       >
                         <p className="text-sm font-medium truncate">{inspiration.title}</p>
@@ -913,7 +913,7 @@ export function DashboardContent({
                     {deals.map((deal) => (
                       <Link
                         key={deal.id}
-                        href={`/collab/${deal.id}`}
+                        href={`/collab`}
                         className="block p-3 rounded-lg border border-brand-200 dark:border-brand-800 hover:border-brand-400 dark:hover:border-brand-600 transition-colors"
                       >
                         <div className="flex items-center justify-between mb-1">

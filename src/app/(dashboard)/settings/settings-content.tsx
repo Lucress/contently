@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { createClient, createUntypedClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { 
   Settings,
   User,
@@ -96,7 +96,13 @@ export function SettingsContent({
   const [hashtags, setHashtags] = useState(initialHashtags)
   
   const [activeTab, setActiveTab] = useState('profile')
-  
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    if (tab) setActiveTab(tab)
+  }, [searchParams])
+
   // Profile form
   const [profileForm, setProfileForm] = useState({
     full_name: profile?.full_name || '',
@@ -494,7 +500,7 @@ export function SettingsContent({
   // Logout
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    router.push('/login')
+    router.push('/auth/login')
   }
 
   return (
@@ -503,10 +509,10 @@ export function SettingsContent({
       <div>
         <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
           <Settings className="h-6 w-6 text-primary" />
-          Paramètres
+          Settings
         </h1>
         <p className="text-muted-foreground mt-1">
-          Gérez votre profil et personnalisez votre espace
+          Manage your profile and customize your workspace
         </p>
       </div>
 
@@ -514,15 +520,15 @@ export function SettingsContent({
         <TabsList className="grid grid-cols-6 w-full max-w-2xl">
           <TabsTrigger value="profile" className="gap-2">
             <User className="h-4 w-4" />
-            <span className="hidden sm:inline">Profil</span>
+            <span className="hidden sm:inline">Profile</span>
           </TabsTrigger>
           <TabsTrigger value="pillars" className="gap-2">
             <Palette className="h-4 w-4" />
-            <span className="hidden sm:inline">Piliers</span>
+            <span className="hidden sm:inline">Pillars</span>
           </TabsTrigger>
           <TabsTrigger value="categories" className="gap-2">
             <FolderTree className="h-4 w-4" />
-            <span className="hidden sm:inline">Catégories</span>
+            <span className="hidden sm:inline">Categories</span>
           </TabsTrigger>
           <TabsTrigger value="setups" className="gap-2">
             <Video className="h-4 w-4" />
@@ -534,7 +540,7 @@ export function SettingsContent({
           </TabsTrigger>
           <TabsTrigger value="billing" className="gap-2">
             <CreditCard className="h-4 w-4" />
-            <span className="hidden sm:inline">Abo</span>
+            <span className="hidden sm:inline">Billing</span>
           </TabsTrigger>
         </TabsList>
 
@@ -563,14 +569,14 @@ export function SettingsContent({
                 </Button>
               </div>
               <div>
-                <h3 className="font-semibold text-lg">{profile?.full_name || 'Créateur'}</h3>
+                <h3 className="font-semibold text-lg">{profile?.full_name || 'Creator'}</h3>
                 <p className="text-muted-foreground">{userEmail}</p>
               </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Nom complet</Label>
+                <Label>Full name</Label>
                 <Input
                   value={profileForm.full_name}
                   onChange={(e) => setProfileForm(prev => ({ ...prev, full_name: e.target.value }))}
@@ -917,7 +923,7 @@ export function SettingsContent({
                     disabled={isUpgradeLoading}
                     onClick={handleManageBilling}
                   >
-                    {isUpgradeLoading ? 'Chargement…' : 'Gérer l\'abonnement'}
+                    {isUpgradeLoading ? 'Loading…' : 'Manage billing'}
                   </Button>
                 )}
               </div>
@@ -947,20 +953,20 @@ export function SettingsContent({
               <ul className="space-y-2 mb-6 text-sm">
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-green-500" />
-                  5 idées max
+                  5 ideas max
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-green-500" />
-                  3 piliers
+                  3 pillars
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-green-500" />
-                  Calendrier basique
+                  Basic calendar
                 </li>
               </ul>
               {!subscription && (
                 <Badge variant="outline" className="w-full justify-center py-2">
-                  Plan actuel
+                  Current plan
                 </Badge>
               )}
             </motion.div>
@@ -978,33 +984,33 @@ export function SettingsContent({
               <div className="flex items-center gap-2 mb-2">
                 <Zap className="h-5 w-5 text-yellow-500" />
                 <h3 className="font-semibold">Pro</h3>
-                <Badge className="bg-yellow-500">Populaire</Badge>
+                <Badge className="bg-yellow-500">Popular</Badge>
               </div>
               <div className="mb-4">
-                <span className="text-3xl font-bold">19€</span>
-                <span className="text-muted-foreground">/mois</span>
+                <span className="text-3xl font-bold">4.99€</span>
+                <span className="text-muted-foreground">/month</span>
               </div>
               <ul className="space-y-2 mb-6 text-sm">
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-green-500" />
-                  Idées illimitées
+                  Unlimited ideas
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-green-500" />
-                  Piliers illimités
+                  Unlimited pillars
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-green-500" />
-                  CRM Marques
+                  Brand CRM
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-green-500" />
-                  Revenus & Analytics
+                  Revenue & Analytics
                 </li>
               </ul>
               {subscription?.plan === 'pro' ? (
                 <Badge variant="outline" className="w-full justify-center py-2">
-                  Plan actuel
+                  Current plan
                 </Badge>
               ) : (
                 <Button
@@ -1012,7 +1018,7 @@ export function SettingsContent({
                   disabled={isUpgradeLoading}
                   onClick={() => handleUpgrade('pro')}
                 >
-                  {isUpgradeLoading ? 'Chargement…' : 'Passer à Pro'}
+                  {isUpgradeLoading ? 'Loading…' : 'Upgrade to Pro'}
                 </Button>
               )}
             </motion.div>
@@ -1032,26 +1038,26 @@ export function SettingsContent({
                 <h3 className="font-semibold">Creator+</h3>
               </div>
               <div className="mb-4">
-                <span className="text-3xl font-bold">49€</span>
-                <span className="text-muted-foreground">/mois</span>
+                <span className="text-3xl font-bold">9.99€</span>
+                <span className="text-muted-foreground">/month</span>
               </div>
               <ul className="space-y-2 mb-6 text-sm">
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-green-500" />
-                  Tout de Pro
+                  Everything in Pro
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-green-500" />
-                  Email Hub intégré
+                  Integrated Email Hub
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="h-4 w-4 text-green-500" />
-                  Support prioritaire
+                  Priority support
                 </li>
               </ul>
               {subscription?.plan === 'creator_plus' ? (
                 <Badge variant="outline" className="w-full justify-center py-2 border-purple-500 text-purple-500">
-                  Plan actuel
+                  Current plan
                 </Badge>
               ) : (
                 <Button
@@ -1059,7 +1065,7 @@ export function SettingsContent({
                   disabled={isUpgradeLoading}
                   onClick={() => handleUpgrade('creator_plus')}
                 >
-                  {isUpgradeLoading ? 'Chargement…' : 'Passer à Creator+'}
+                  {isUpgradeLoading ? 'Loading…' : 'Upgrade to Creator+'}
                 </Button>
               )}
             </motion.div>

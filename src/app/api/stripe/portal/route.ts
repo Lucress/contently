@@ -14,19 +14,21 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Get customer ID from subscription
+    // Get customer ID from any subscription (active, trialing, past_due, etc.)
     const { data: subscription } = await supabase
       .from('subscriptions')
       .select('*')
       .eq('user_id', user.id)
-      .eq('status', 'active')
+      .in('status', ['active', 'trialing', 'past_due', 'paused', 'canceled', 'unpaid'])
+      .order('created_at', { ascending: false })
+      .limit(1)
       .single()
 
     const stripeCustomerId = (subscription as any)?.stripe_customer_id
-    
+
     if (!stripeCustomerId) {
       return NextResponse.json(
-        { error: 'No active subscription' },
+        { error: 'No subscription found' },
         { status: 400 }
       )
     }

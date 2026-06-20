@@ -140,6 +140,9 @@ export function PlannerContent({
   const [selectedTime, setSelectedTime] = useState<string>('09:00')
   const [draggedIdea, setDraggedIdea] = useState<UnscheduledIdea | null>(null)
   const [draggedFilmedIdea, setDraggedFilmedIdea] = useState<FilmedIdea | null>(null)
+  const [isPublishTimeDialogOpen, setIsPublishTimeDialogOpen] = useState(false)
+  const [pendingPublishDrop, setPendingPublishDrop] = useState<{ idea: FilmedIdea; date: Date } | null>(null)
+  const [pendingPublishTime, setPendingPublishTime] = useState<string>('12:00')
 
   const { toast } = useToast()
   const supabase = createClient()
@@ -320,77 +323,41 @@ export function PlannerContent({
     setDraggedFilmedIdea(null)
   }
 
-  const handleDrop = async (date: Date) => {
-    // Handle filmed idea drop (scheduling publication)
+  const handleDrop = (date: Date) => {
+    // Filmed idea drop → open publish time dialog
     if (draggedFilmedIdea) {
-      try {
-        const { data: plannerItem, error } = await supabaseMutation
-          .from('planner_items')
-          .insert({
-            user_id: userId,
-            idea_id: draggedFilmedIdea.id,
-            title: draggedFilmedIdea.title,
-            date: format(date, 'yyyy-MM-dd'),
-            item_type: 'publishing',
-            start_time: '12:00',
-          })
-          .select(`
-            *,
-            idea:ideas(
-              id,
-              title,
-              hook,
-              status,
-              priority,
-              content_pillar:content_pillars(id, name, color)
-            )
-          `)
-          .single()
-
-        if (error) throw error
-
-        // Update idea with publish date
-        await supabaseMutation
-          .from('ideas')
-          .update({ 
-            status: 'scheduled',
-            publish_date: format(date, 'yyyy-MM-dd')
-          })
-          .eq('id', draggedFilmedIdea.id)
-
-        setPlannerItems(prev => [...prev, plannerItem as PlannerItem])
-        setFilmedIdeas(prev => prev.filter(i => i.id !== draggedFilmedIdea.id))
-
-        toast({
-          title: 'Publication scheduled',
-          description: `"${draggedFilmedIdea.title}" will be published on ${format(date, 'MMMM d')}.`,
-        })
-      } catch (error) {
-        console.error(error)
-        toast({
-          title: 'Error',
-          description: 'Unable to schedule the publication.',
-          variant: 'destructive',
-        })
-      }
-
+      setPendingPublishDrop({ idea: draggedFilmedIdea, date })
+      setPendingPublishTime('12:00')
+      setIsPublishTimeDialogOpen(true)
       setDraggedFilmedIdea(null)
       return
     }
 
-    // Handle scripted idea drop (scheduling filming)
+    // Scripted idea drop → open schedule dialog pre-populated
     if (!draggedIdea) return
 
+    setSelectedDate(date)
+    setSelectedIdea(draggedIdea.id)
+    setSelectedSlotType('filming')
+    setSelectedTime('09:00')
+    setIsScheduleDialogOpen(true)
+    setDraggedIdea(null)
+  }
+
+  const handleConfirmPublishDrop = async () => {
+    if (!pendingPublishDrop) return
+
+    const { idea, date } = pendingPublishDrop
     try {
       const { data: plannerItem, error } = await supabaseMutation
         .from('planner_items')
         .insert({
           user_id: userId,
-          idea_id: draggedIdea.id,
-          title: draggedIdea.title,
+          idea_id: idea.id,
+          title: idea.title,
           date: format(date, 'yyyy-MM-dd'),
-          item_type: 'filming',
-          start_time: '09:00',
+          item_type: 'publishing',
+          start_time: pendingPublishTime,
         })
         .select(`
           *,
@@ -409,29 +376,29 @@ export function PlannerContent({
 
       await supabaseMutation
         .from('ideas')
-        .update({ 
-          status: 'planned',
-          scheduled_date: format(date, 'yyyy-MM-dd')
+        .update({
+          status: 'scheduled',
+          publish_date: format(date, 'yyyy-MM-dd'),
         })
-        .eq('id', draggedIdea.id)
+        .eq('id', idea.id)
 
       setPlannerItems(prev => [...prev, plannerItem as PlannerItem])
-      setUnscheduledIdeas(prev => prev.filter(i => i.id !== draggedIdea.id))
+      setFilmedIdeas(prev => prev.filter(i => i.id !== idea.id))
+      setIsPublishTimeDialogOpen(false)
+      setPendingPublishDrop(null)
 
       toast({
-        title: 'Idea scheduled',
-        description: `"${draggedIdea.title}" scheduled for ${format(date, 'MMMM d')}.`,
+        title: 'Publication scheduled',
+        description: `"${idea.title}" will be published on ${format(date, 'MMMM d')}.`,
       })
     } catch (error) {
       console.error(error)
       toast({
         title: 'Error',
-        description: 'Unable to schedule the idea.',
+        description: 'Unable to schedule the publication.',
         variant: 'destructive',
       })
     }
-
-    setDraggedIdea(null)
   }
 
   return (
@@ -841,6 +808,36 @@ export function PlannerContent({
               Cancel
             </Button>
             <Button onClick={handleScheduleIdea}>
+              Schedule
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Publish Time Dialog (for filmed idea drops) */}
+      <Dialog open={isPublishTimeDialogOpen} onOpenChange={setIsPublishTimeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Schedule Publication</DialogTitle>
+            <DialogDescription>
+              {pendingPublishDrop && `"${pendingPublishDrop.idea.title}" on ${format(pendingPublishDrop.date, 'MMMM d, yyyy', { locale: enUS })}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="space-y-2">
+              <Label>Publication Time</Label>
+              <Input
+                type="time"
+                value={pendingPublishTime}
+                onChange={(e) => setPendingPublishTime(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPublishTimeDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmPublishDrop}>
               Schedule
             </Button>
           </DialogFooter>

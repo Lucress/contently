@@ -205,7 +205,7 @@ export function NewIdeaForm({
         description: 'Your idea has been created successfully.',
       })
 
-      router.push(`/ideas/${idea.id}`)
+      router.push('/ideas')
     } catch (error) {
       console.error(error)
       toast({
@@ -536,7 +536,7 @@ export function NewIdeaForm({
                   ) : (
                     <p className="text-sm text-muted-foreground">
                       No hashtags configured. 
-                      <Link href="/settings/hashtags" className="text-primary hover:underline ml-1">
+                      <Link href="/settings?tab=hashtags" className="text-primary hover:underline ml-1">
                         Add hashtags
                       </Link>
                     </p>

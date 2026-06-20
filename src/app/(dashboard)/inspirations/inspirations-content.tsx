@@ -255,7 +255,6 @@ export function InspirationsContent({ inspirations: initialInspirations, userId,
         is_processed: formData.status === 'converted',
       }
       
-      console.log('[Inspirations] Saving with data:', inspirationData)
       
       const { data, error } = await supabaseMutation
         .from('inspirations')
@@ -268,7 +267,6 @@ export function InspirationsContent({ inspirations: initialInspirations, userId,
         throw error
       }
 
-      console.log('[Inspirations] Save successful:', data)
       setInspirations(prev => [data as Inspiration, ...prev])
       setIsCreateDialogOpen(false)
       resetForm()

@@ -251,10 +251,10 @@ export function CollabContent({
       setDealForm({
         brand_id: deal.brand_id || '',
         title: deal.title,
-        amount: (deal as any).value?.toString() || '',
+        amount: (deal as any).budget?.toString() || '',
         currency: deal.currency,
         status: deal.status as DealStatus,
-        deliverables: typeof deal.deliverables === 'string' ? deal.deliverables : '',
+        deliverables: Array.isArray(deal.deliverables) ? (deal.deliverables as string[]).join('\n') : (typeof deal.deliverables === 'string' ? deal.deliverables : ''),
         deadline: deal.deadline || '',
         notes: deal.notes || '',
       })
@@ -340,15 +340,24 @@ export function CollabContent({
       return
     }
 
+    if (!dealForm.brand_id) {
+      toast({
+        title: 'Error',
+        description: 'Please select a brand partner.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setIsLoading(true)
     try {
       const dealData = {
         title: dealForm.title,
-        brand_id: dealForm.brand_id || null,
-        value: dealForm.amount ? parseFloat(dealForm.amount) : null,
+        brand_id: dealForm.brand_id,
+        budget: dealForm.amount ? parseFloat(dealForm.amount) : null,
         currency: dealForm.currency,
         status: dealForm.status,
-        deliverables: dealForm.deliverables || null,
+        deliverables: dealForm.deliverables ? [dealForm.deliverables] : [],
         deadline: dealForm.deadline || null,
         notes: dealForm.notes || null,
       }
@@ -942,16 +951,15 @@ export function CollabContent({
               />
             </div>
             <div className="space-y-2">
-              <Label>Brand Partner</Label>
-              <Select 
-                value={dealForm.brand_id || 'none'} 
-                onValueChange={(v) => setDealForm(prev => ({ ...prev, brand_id: v === 'none' ? '' : v }))}
+              <Label>Brand Partner *</Label>
+              <Select
+                value={dealForm.brand_id || ''}
+                onValueChange={(v) => setDealForm(prev => ({ ...prev, brand_id: v }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a brand..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
                   {brands.map(brand => (
                     <SelectItem key={brand.id} value={brand.id}>{brand.name}</SelectItem>
                   ))}
