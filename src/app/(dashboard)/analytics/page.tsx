@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { AnalyticsContent } from './analytics-content'
 import { subMonths, format } from 'date-fns'
+import { getUserPlan } from '@/lib/subscription'
+import { PlanGate } from '@/components/plan-gate'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,6 +11,19 @@ export default async function AnalyticsPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) return null
+
+  const plan = await getUserPlan(user.id)
+  if (!plan.features.analytics) {
+    return (
+      <PlanGate
+        featureName="Analytics"
+        featureDescription="Track views, engagement, and revenue across all your content and platforms."
+        requiredPlan="pro"
+        currentPlan={plan.id}
+        featureEmoji="📊"
+      />
+    )
+  }
 
   const now = new Date()
   const sixMonthsAgo = subMonths(now, 6)

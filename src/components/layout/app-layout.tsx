@@ -21,7 +21,7 @@ export function AppLayout({ children, user, profile, subscription }: AppLayoutPr
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
+      <Sidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} plan={subscription?.plan ?? 'free'} />
       
       <div
         className={cn(

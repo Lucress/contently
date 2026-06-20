@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { EmailHubContent } from './email-hub-content'
-import { redirect } from 'next/navigation'
 import { getUserPlan } from '@/lib/subscription'
+import { PlanGate } from '@/components/plan-gate'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,7 +13,15 @@ export default async function EmailHubPage() {
 
   const plan = await getUserPlan(user.id)
   if (!plan.features.emailHub) {
-    redirect('/settings?tab=billing&feature=email_hub')
+    return (
+      <PlanGate
+        featureName="Email Hub"
+        featureDescription="Connect your Gmail or IMAP inbox — manage brand collaborations and pitches without leaving the app."
+        requiredPlan="creator_plus"
+        currentPlan={plan.id}
+        featureEmoji="✉️"
+      />
+    )
   }
 
   // Fetch email accounts

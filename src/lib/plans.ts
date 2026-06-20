@@ -1,16 +1,23 @@
 // ============================================================
 // CONTENTLY — Plan Definitions (single source of truth)
 // ============================================================
+//
+// Pricing strategy: small gap between Pro and Creator+ (only €2)
+// so users feel Creator+ is the obvious choice.
+//   Free  → €0     — taste of the product
+//   Pro   → €7.99  — serious creators, most features
+//   Creator+ → €9.99 — "only €2 more, get everything"
+// ============================================================
 
 export type PlanId = 'free' | 'pro' | 'creator_plus'
 
 export interface PlanFeatures {
   ideas: number           // max ideas (Infinity = unlimited)
   pillars: number         // max content pillars
-  brandCRM: boolean       // brands + deals (Collaborations)
+  brandCRM: boolean       // brands + deals (Collaborations page)
   revenue: boolean        // revenue tracking page
   analytics: boolean      // analytics + video metrics
-  emailHub: boolean       // Email Hub (IMAP/Gmail)
+  emailHub: boolean       // Email Hub (IMAP/Gmail) — Creator+ exclusive
   planner: boolean        // planner calendar
   hashtagGroups: boolean  // hashtag library
 }
@@ -18,9 +25,9 @@ export interface PlanFeatures {
 export interface PlanConfig {
   id: PlanId
   name: string
-  price: number           // EUR/month
+  price: number           // EUR/month (0 = free)
   features: PlanFeatures
-  badge?: string          // e.g. "Popular"
+  badge?: string
   highlight?: 'primary' | 'purple'
 }
 
@@ -30,7 +37,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
     name: 'Free',
     price: 0,
     features: {
-      ideas: 5,
+      ideas: 20,
       pillars: 3,
       brandCRM: false,
       revenue: false,
@@ -43,16 +50,16 @@ export const PLANS: Record<PlanId, PlanConfig> = {
   pro: {
     id: 'pro',
     name: 'Pro',
-    price: 4.99,
+    price: 7.99,
     badge: 'Popular',
     highlight: 'primary',
     features: {
-      ideas: Infinity,
-      pillars: Infinity,
+      ideas: 200,
+      pillars: 5,
       brandCRM: true,
       revenue: true,
       analytics: true,
-      emailHub: false,      // Creator+ only
+      emailHub: false,
       planner: true,
       hashtagGroups: true,
     },
@@ -68,7 +75,7 @@ export const PLANS: Record<PlanId, PlanConfig> = {
       brandCRM: true,
       revenue: true,
       analytics: true,
-      emailHub: true,       // exclusive
+      emailHub: true,
       planner: true,
       hashtagGroups: true,
     },
@@ -85,16 +92,25 @@ export function getPlan(planId: string | null | undefined): PlanConfig {
   return PLANS.free
 }
 
-// Check if a plan has access to a feature
+// Check if a plan has access to a boolean feature
 export function canAccess(planId: string | null | undefined, feature: keyof PlanFeatures): boolean {
   const plan = getPlan(planId)
   const value = plan.features[feature]
-  return typeof value === 'boolean' ? value : true // number features always "accessible"
+  return typeof value === 'boolean' ? value : true
 }
 
-// Check count limit — returns true if the user is within the limit
+// Check count limit — true if user is within the limit
 export function withinLimit(planId: string | null | undefined, feature: 'ideas' | 'pillars', currentCount: number): boolean {
   const plan = getPlan(planId)
   const limit = plan.features[feature]
   return currentCount < limit
+}
+
+// Which plan is the minimum required for a feature?
+export function requiredPlanFor(feature: keyof PlanFeatures): PlanConfig {
+  for (const plan of PLAN_LIST) {
+    const value = plan.features[feature]
+    if (value === true || (typeof value === 'number' && value === Infinity)) return plan
+  }
+  return PLANS.creator_plus
 }

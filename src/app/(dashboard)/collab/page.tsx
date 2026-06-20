@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { CollabContent } from './collab-content'
-import { redirect } from 'next/navigation'
 import { getUserPlan } from '@/lib/subscription'
+import { PlanGate } from '@/components/plan-gate'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,7 +13,15 @@ export default async function CollabPage() {
 
   const plan = await getUserPlan(user.id)
   if (!plan.features.brandCRM) {
-    redirect('/settings?tab=billing&feature=brand_crm')
+    return (
+      <PlanGate
+        featureName="Brand CRM & Deals"
+        featureDescription="Track every brand relationship, manage collab deals, and never miss a follow-up."
+        requiredPlan="pro"
+        currentPlan={plan.id}
+        featureEmoji="🤝"
+      />
+    )
   }
 
   // Fetch brands with their deals count

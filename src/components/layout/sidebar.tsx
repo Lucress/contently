@@ -16,18 +16,21 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  Lock,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useLanguage } from '@/lib/i18n'
 import { LanguageSwitcher } from '@/components/language-switcher'
+import { canAccess, type PlanFeatures } from '@/lib/plans'
 
 interface NavItem {
   titleKey: 'dashboard' | 'ideas' | 'inspirations' | 'planner' | 'production' | 'collab' | 'brands' | 'deals' | 'emails' | 'revenue' | 'analytics' | 'settings'
   href: string
   icon: React.ElementType
   badge?: string | number
+  requiredFeature?: keyof PlanFeatures
 }
 
 const mainNavItems: NavItem[] = [
@@ -39,18 +42,19 @@ const mainNavItems: NavItem[] = [
 ]
 
 const businessNavItems: NavItem[] = [
-  { titleKey: 'collab', href: '/collab', icon: Handshake },
-  { titleKey: 'emails', href: '/emails', icon: Mail },
-  { titleKey: 'revenue', href: '/revenue', icon: DollarSign },
-  { titleKey: 'analytics', href: '/analytics', icon: BarChart3 },
+  { titleKey: 'collab', href: '/collab', icon: Handshake, requiredFeature: 'brandCRM' },
+  { titleKey: 'emails', href: '/emails', icon: Mail, requiredFeature: 'emailHub' },
+  { titleKey: 'revenue', href: '/revenue', icon: DollarSign, requiredFeature: 'revenue' },
+  { titleKey: 'analytics', href: '/analytics', icon: BarChart3, requiredFeature: 'analytics' },
 ]
 
 interface SidebarProps {
   isCollapsed: boolean
   onToggle: () => void
+  plan?: string
 }
 
-export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
+export function Sidebar({ isCollapsed, onToggle, plan }: SidebarProps) {
   const pathname = usePathname()
   const { t } = useLanguage()
 
@@ -58,24 +62,28 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
     const Icon = item.icon
     const title = t.nav[item.titleKey]
+    const locked = item.requiredFeature ? !canAccess(plan, item.requiredFeature) : false
 
     return (
       <Link
         href={item.href}
         className={cn(
           'flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors',
-          isActive 
-            ? 'bg-accent text-foreground font-medium' 
-            : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+          isActive
+            ? 'bg-accent text-foreground font-medium'
+            : locked
+              ? 'text-muted-foreground/50 hover:text-muted-foreground hover:bg-accent/30'
+              : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
         )}
       >
         <Icon className="h-4 w-4 shrink-0" />
         {!isCollapsed && (
-          <span className="truncate">
-            {title}
-          </span>
+          <span className="truncate flex-1">{title}</span>
         )}
-        {!isCollapsed && item.badge && (
+        {!isCollapsed && locked && (
+          <Lock className="h-3 w-3 shrink-0 text-muted-foreground/40" />
+        )}
+        {!isCollapsed && !locked && item.badge && (
           <span className="ml-auto text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
             {item.badge}
           </span>
