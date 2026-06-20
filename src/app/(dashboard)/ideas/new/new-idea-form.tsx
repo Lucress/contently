@@ -75,16 +75,23 @@ interface NewIdeaFormProps {
   hashtags: Hashtag[]
   filmingSetups: FilmingSetup[]
   userId: string
+  planId?: string
+  ideaLimit?: number      // Infinity = unlimited
+  ideaCount?: number
 }
 
-export function NewIdeaForm({ 
-  pillars, 
-  categories, 
+export function NewIdeaForm({
+  pillars,
+  categories,
   contentTypes,
   hashtags,
   filmingSetups,
-  userId 
+  userId,
+  planId = 'free',
+  ideaLimit = 5,
+  ideaCount = 0,
 }: NewIdeaFormProps) {
+  const limitReached = isFinite(ideaLimit) && ideaCount >= ideaLimit
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
@@ -139,6 +146,15 @@ export function NewIdeaForm({
   }
 
   const handleSubmit = async () => {
+    if (limitReached) {
+      toast({
+        title: 'Idea limit reached',
+        description: `Your Free plan allows ${ideaLimit} ideas. Upgrade to Pro for unlimited ideas.`,
+        variant: 'destructive',
+      })
+      return
+    }
+
     if (!formData.title.trim()) {
       toast({
         title: 'Error',
@@ -247,11 +263,29 @@ export function NewIdeaForm({
             )}
           </div>
         </div>
-        <Button onClick={handleSubmit} disabled={isLoading} className="gap-2">
+        <Button onClick={handleSubmit} disabled={isLoading || limitReached} className="gap-2">
           <Save className="h-4 w-4" />
           {isLoading ? 'Creating...' : 'Create Idea'}
         </Button>
       </div>
+
+      {limitReached && (
+        <div className="max-w-4xl mx-auto mb-2">
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 flex items-center justify-between gap-4">
+            <div>
+              <p className="font-medium text-amber-800 dark:text-amber-200">
+                Free plan limit reached — {ideaCount}/{ideaLimit} ideas
+              </p>
+              <p className="text-sm text-amber-700 dark:text-amber-300 mt-0.5">
+                Upgrade to Pro for unlimited ideas, brand CRM, and revenue tracking.
+              </p>
+            </div>
+            <Button asChild size="sm" className="shrink-0">
+              <Link href="/settings?tab=billing">Upgrade</Link>
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-4xl mx-auto">
         <motion.div

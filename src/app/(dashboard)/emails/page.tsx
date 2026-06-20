@@ -1,11 +1,20 @@
 import { createClient } from '@/lib/supabase/server'
 import { EmailHubContent } from './email-hub-content'
+import { redirect } from 'next/navigation'
+import { getUserPlan } from '@/lib/subscription'
+
+export const dynamic = 'force-dynamic'
 
 export default async function EmailHubPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) return null
+
+  const plan = await getUserPlan(user.id)
+  if (!plan.features.emailHub) {
+    redirect('/settings?tab=billing&feature=email_hub')
+  }
 
   // Fetch email accounts
   const { data: emailAccounts } = await supabase

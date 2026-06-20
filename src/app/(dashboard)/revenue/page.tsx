@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { RevenueContent } from '.'
 import { subMonths, format } from 'date-fns'
+import { redirect } from 'next/navigation'
+import { getUserPlan } from '@/lib/subscription'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,6 +11,11 @@ export default async function RevenuePage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) return null
+
+  const plan = await getUserPlan(user.id)
+  if (!plan.features.revenue) {
+    redirect('/settings?tab=billing&feature=revenue')
+  }
 
   const today = new Date()
   const sixMonthsAgo = subMonths(today, 6)

@@ -48,6 +48,7 @@ import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/components/ui/use-toast'
 import { Tables } from '@/types/database'
 import { cn } from '@/lib/utils'
+import { PLAN_LIST, getPlan } from '@/lib/plans'
 
 type Profile = Tables<'profiles'>
 type Pillar = Tables<'content_pillars'>
@@ -936,145 +937,89 @@ export function SettingsContent({
             </div>
           </motion.div>
 
-          {/* Pricing Cards */}
+          {/* Pricing Cards — driven by PLAN_LIST */}
           <div className="grid gap-4 md:grid-cols-3">
-            {/* Free */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className={cn(
-                "bg-card border rounded-xl p-6",
-                (!subscription?.plan || subscription.plan === 'free') && "ring-2 ring-primary"
-              )}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="h-5 w-5 text-muted-foreground" />
-                <h3 className="font-semibold">Free</h3>
-              </div>
-              <div className="mb-4">
-                <span className="text-3xl font-bold">€0</span>
-                <span className="text-muted-foreground">/month</span>
-              </div>
-              <ul className="space-y-2 mb-6 text-sm">
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
-                  5 ideas max
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
-                  3 pillars
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
-                  Basic calendar
-                </li>
-              </ul>
-              {(!subscription?.plan || subscription.plan === 'free') && (
-                <Badge variant="outline" className="w-full justify-center py-2">
-                  Current plan
-                </Badge>
-              )}
-            </motion.div>
+            {PLAN_LIST.map((plan, i) => {
+              const currentPlan = getPlan(subscription?.plan)
+              const isCurrent = currentPlan.id === plan.id
+              const isPurple = plan.highlight === 'purple'
+              const Icon = plan.id === 'free' ? Sparkles : plan.id === 'pro' ? Zap : Crown
 
-            {/* Pro */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className={cn(
-                "bg-card border rounded-xl p-6",
-                subscription?.plan === 'pro' && "ring-2 ring-primary"
-              )}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Zap className="h-5 w-5 text-yellow-500" />
-                <h3 className="font-semibold">Pro</h3>
-                <Badge className="bg-yellow-500">Popular</Badge>
-              </div>
-              <div className="mb-4">
-                <span className="text-3xl font-bold">4.99€</span>
-                <span className="text-muted-foreground">/month</span>
-              </div>
-              <ul className="space-y-2 mb-6 text-sm">
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
-                  Unlimited ideas
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
-                  Unlimited pillars
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
-                  Brand CRM
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
-                  Revenue & Analytics
-                </li>
-              </ul>
-              {subscription?.plan === 'pro' ? (
-                <Badge variant="outline" className="w-full justify-center py-2">
-                  Current plan
-                </Badge>
-              ) : (
-                <Button
-                  className="w-full"
-                  disabled={isUpgradeLoading}
-                  onClick={() => handleUpgrade('pro')}
-                >
-                  {isUpgradeLoading ? 'Loading…' : 'Upgrade to Pro'}
-                </Button>
-              )}
-            </motion.div>
+              // Feature rows per plan
+              const featureRows: string[] = plan.id === 'free'
+                ? [
+                    `${plan.features.ideas} ideas max`,
+                    `${plan.features.pillars} content pillars`,
+                    'Planner calendar',
+                  ]
+                : plan.id === 'pro'
+                ? [
+                    'Unlimited ideas',
+                    'Unlimited pillars',
+                    'Brand CRM & Deals',
+                    'Revenue tracking',
+                    'Video analytics',
+                    'Hashtag library',
+                  ]
+                : [
+                    'Everything in Pro',
+                    'Email Hub (IMAP / Gmail)',
+                    'Priority support',
+                  ]
 
-            {/* Creator+ */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className={cn(
-                "bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-6",
-                subscription?.plan === 'creator_plus' && "ring-2 ring-purple-500"
-              )}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Crown className="h-5 w-5 text-purple-500" />
-                <h3 className="font-semibold">Creator+</h3>
-              </div>
-              <div className="mb-4">
-                <span className="text-3xl font-bold">9.99€</span>
-                <span className="text-muted-foreground">/month</span>
-              </div>
-              <ul className="space-y-2 mb-6 text-sm">
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
-                  Everything in Pro
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
-                  Integrated Email Hub
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4 text-green-500" />
-                  Priority support
-                </li>
-              </ul>
-              {subscription?.plan === 'creator_plus' ? (
-                <Badge variant="outline" className="w-full justify-center py-2 border-purple-500 text-purple-500">
-                  Current plan
-                </Badge>
-              ) : (
-                <Button
-                  className="w-full bg-purple-500 hover:bg-purple-600"
-                  disabled={isUpgradeLoading}
-                  onClick={() => handleUpgrade('creator_plus')}
+              return (
+                <motion.div
+                  key={plan.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 + i * 0.05 }}
+                  className={cn(
+                    'rounded-xl p-6 flex flex-col',
+                    isPurple
+                      ? 'bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20'
+                      : 'bg-card border',
+                    isCurrent && (isPurple ? 'ring-2 ring-purple-500' : 'ring-2 ring-primary'),
+                  )}
                 >
-                  {isUpgradeLoading ? 'Loading…' : 'Upgrade to Creator+'}
-                </Button>
-              )}
-            </motion.div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon className={cn('h-5 w-5', isPurple ? 'text-purple-500' : plan.id === 'pro' ? 'text-yellow-500' : 'text-muted-foreground')} />
+                    <h3 className="font-semibold">{plan.name}</h3>
+                    {plan.badge && <Badge className="bg-yellow-500 text-white">{plan.badge}</Badge>}
+                  </div>
+
+                  <div className="mb-4">
+                    <span className="text-3xl font-bold">{plan.price === 0 ? '€0' : `${plan.price}€`}</span>
+                    <span className="text-muted-foreground">/month</span>
+                  </div>
+
+                  <ul className="space-y-2 mb-6 text-sm flex-1">
+                    {featureRows.map((row) => (
+                      <li key={row} className="flex items-center gap-2">
+                        <Check className={cn('h-4 w-4 shrink-0', isPurple ? 'text-purple-500' : 'text-green-500')} />
+                        {row}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {isCurrent ? (
+                    <Badge
+                      variant="outline"
+                      className={cn('w-full justify-center py-2', isPurple && 'border-purple-500 text-purple-500')}
+                    >
+                      Current plan
+                    </Badge>
+                  ) : plan.id === 'free' ? null : (
+                    <Button
+                      className={cn('w-full', isPurple && 'bg-purple-500 hover:bg-purple-600')}
+                      disabled={isUpgradeLoading}
+                      onClick={() => handleUpgrade(plan.id as 'pro' | 'creator_plus')}
+                    >
+                      {isUpgradeLoading ? 'Loading…' : `Upgrade to ${plan.name}`}
+                    </Button>
+                  )}
+                </motion.div>
+              )
+            })}
           </div>
         </TabsContent>
       </Tabs>

@@ -1,11 +1,20 @@
 import { createClient } from '@/lib/supabase/server'
 import { CollabContent } from './collab-content'
+import { redirect } from 'next/navigation'
+import { getUserPlan } from '@/lib/subscription'
+
+export const dynamic = 'force-dynamic'
 
 export default async function CollabPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) return null
+
+  const plan = await getUserPlan(user.id)
+  if (!plan.features.brandCRM) {
+    redirect('/settings?tab=billing&feature=brand_crm')
+  }
 
   // Fetch brands with their deals count
   const { data: brands } = await supabase
