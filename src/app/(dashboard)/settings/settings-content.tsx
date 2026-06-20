@@ -909,14 +909,20 @@ export function SettingsContent({
               <div>
                 <h3 className="font-semibold text-lg">Current Plan</h3>
                 <p className="text-muted-foreground">
-                  {subscription ? `Plan ${subscription.plan}` : 'Free Plan'}
+                  {subscription?.plan === 'creator_plus' ? 'Creator+' : subscription?.plan === 'pro' ? 'Pro' : 'Free'}
+                  {subscription?.status && subscription.status !== 'active' && (
+                    <span className="ml-2 text-xs text-orange-500 font-medium uppercase">{subscription.status.replace('_', ' ')}</span>
+                  )}
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <Badge variant={subscription ? "default" : "secondary"} className="text-lg px-4 py-1">
+                <Badge
+                  variant={subscription?.plan && subscription.plan !== 'free' ? "default" : "secondary"}
+                  className="text-lg px-4 py-1"
+                >
                   {subscription?.plan === 'creator_plus' ? 'Creator+' : subscription?.plan === 'pro' ? 'Pro' : 'Free'}
                 </Badge>
-                {subscription && (
+                {subscription?.plan && subscription.plan !== 'free' && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -939,7 +945,7 @@ export function SettingsContent({
               transition={{ delay: 0.1 }}
               className={cn(
                 "bg-card border rounded-xl p-6",
-                !subscription && "ring-2 ring-primary"
+                (!subscription?.plan || subscription.plan === 'free') && "ring-2 ring-primary"
               )}
             >
               <div className="flex items-center gap-2 mb-2">
@@ -964,7 +970,7 @@ export function SettingsContent({
                   Basic calendar
                 </li>
               </ul>
-              {!subscription && (
+              {(!subscription?.plan || subscription.plan === 'free') && (
                 <Badge variant="outline" className="w-full justify-center py-2">
                   Current plan
                 </Badge>

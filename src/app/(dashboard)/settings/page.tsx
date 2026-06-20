@@ -29,7 +29,7 @@ export default async function SettingsPage() {
       .eq('user_id', user.id)
       .order('name'),
     supabase
-      .from('content_categories')
+      .from('categories')
       .select('*, pillar:content_pillars(id, name, color)')
       .eq('user_id', user.id)
       .order('name'),
@@ -52,7 +52,6 @@ export default async function SettingsPage() {
       .from('subscriptions')
       .select('*')
       .eq('user_id', user.id)
-      .eq('status', 'active')
       .single(),
   ])
 
