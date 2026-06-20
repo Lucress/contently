@@ -50,8 +50,8 @@ export async function POST(req: NextRequest) {
 
   // Private env vars are always read at runtime. NEXT_PUBLIC_* are baked at build time
   // and may be undefined — use private vars as primary, NEXT_PUBLIC_ as fallback.
-  const PRICE_PRO = process.env.STRIPE_PRICE_PRO || process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO
-  const PRICE_CREATOR_PLUS = process.env.STRIPE_PRICE_CREATOR_PLUS || process.env.NEXT_PUBLIC_STRIPE_PRICE_CREATOR_PLUS
+  const PRICE_PRO = process.env.STRIPE_PRICE_PRO || process.env.STRIPE_PRICE_ID_PRO || process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO
+  const PRICE_CREATOR_PLUS = process.env.STRIPE_PRICE_CREATOR_PLUS || process.env.STRIPE_PRICE_ID_CREATOR_PLUS || process.env.NEXT_PUBLIC_STRIPE_PRICE_CREATOR_PLUS
 
   const getPlanId = (priceId: string | undefined): string => {
     if (PRICE_CREATOR_PLUS && priceId === PRICE_CREATOR_PLUS) return 'creator_plus'

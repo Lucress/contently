@@ -8,8 +8,8 @@ export async function POST(req: NextRequest) {
   // when the build ran, they'll always be undefined at runtime.
   // Private vars (no NEXT_PUBLIC_ prefix) are read from the real process.env at runtime.
   const PLAN_PRICE_IDS: Record<string, string | undefined> = {
-    pro: process.env.STRIPE_PRICE_PRO || process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO,
-    creator_plus: process.env.STRIPE_PRICE_CREATOR_PLUS || process.env.NEXT_PUBLIC_STRIPE_PRICE_CREATOR_PLUS,
+    pro: process.env.STRIPE_PRICE_PRO || process.env.STRIPE_PRICE_ID_PRO || process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO,
+    creator_plus: process.env.STRIPE_PRICE_CREATOR_PLUS || process.env.STRIPE_PRICE_ID_CREATOR_PLUS || process.env.NEXT_PUBLIC_STRIPE_PRICE_CREATOR_PLUS,
   }
   try {
     const supabase = await createClient()
