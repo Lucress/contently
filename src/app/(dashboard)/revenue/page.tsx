@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { RevenueContent } from '.'
-import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns'
+import { subMonths, format } from 'date-fns'
+
+export const dynamic = 'force-dynamic'
 
 export default async function RevenuePage() {
   const supabase = await createClient()

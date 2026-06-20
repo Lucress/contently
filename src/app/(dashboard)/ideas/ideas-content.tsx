@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, createUntypedClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { 
-  Lightbulb, 
-  Plus, 
-  Search, 
+import {
+  Lightbulb,
+  Plus,
+  Search,
   Calendar,
   Trash2,
   Pencil,
@@ -19,11 +19,14 @@ import {
   FileEdit,
   Send,
   Archive,
-  Video
+  Video,
+  BarChart2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -31,6 +34,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -92,6 +103,19 @@ const priorityConfig: Record<number, { label: string; color: string }> = {
   3: { label: 'Low', color: 'bg-gray-400' },
 }
 
+const PLATFORM_LABELS: Record<string, string> = {
+  youtube_shorts: 'YouTube Shorts',
+  youtube: 'YouTube',
+  tiktok: 'TikTok',
+  instagram_reels: 'Instagram Reels',
+  instagram_feed: 'Instagram Feed',
+  facebook: 'Facebook',
+  linkedin: 'LinkedIn',
+  twitter: 'X / Twitter',
+  pinterest: 'Pinterest',
+  podcast: 'Podcast',
+}
+
 export function IdeasContent({ 
   ideas: initialIdeas, 
   pillars,
@@ -105,10 +129,12 @@ export function IdeasContent({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'priority'>('newest')
   const [deleteIdea, setDeleteIdea] = useState<Idea | null>(null)
+  const [analyticsIdea, setAnalyticsIdea] = useState<Idea | null>(null)
 
   const { toast } = useToast()
   const router = useRouter()
   const supabase = createClient()
+  const supabaseMutation = createUntypedClient()
 
   // Filter and sort ideas
   const filteredIdeas = useMemo(() => {
@@ -317,10 +343,11 @@ export function IdeasContent({
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredIdeas.map((idea) => (
-            <IdeaGridCard 
-              key={idea.id} 
-              idea={idea} 
+            <IdeaGridCard
+              key={idea.id}
+              idea={idea}
               onDelete={() => setDeleteIdea(idea)}
+              onLogAnalytics={() => setAnalyticsIdea(idea)}
               router={router}
             />
           ))}
@@ -328,15 +355,25 @@ export function IdeasContent({
       ) : (
         <div className="space-y-2">
           {filteredIdeas.map((idea) => (
-            <IdeaListRow 
-              key={idea.id} 
-              idea={idea} 
+            <IdeaListRow
+              key={idea.id}
+              idea={idea}
               onDelete={() => setDeleteIdea(idea)}
+              onLogAnalytics={() => setAnalyticsIdea(idea)}
               router={router}
             />
           ))}
         </div>
       )}
+
+      {/* Video Analytics Dialog */}
+      <VideoAnalyticsDialog
+        idea={analyticsIdea}
+        userId={userId}
+        open={!!analyticsIdea}
+        onClose={() => setAnalyticsIdea(null)}
+        supabase={supabaseMutation}
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteIdea} onOpenChange={(open) => !open && setDeleteIdea(null)}>
@@ -363,15 +400,21 @@ export function IdeasContent({
 }
 
 // Grid Card Component
-function IdeaGridCard({ idea, onDelete, router }: { idea: Idea; onDelete: () => void; router: ReturnType<typeof useRouter> }) {
+function IdeaGridCard({ idea, onDelete, onLogAnalytics, router }: {
+  idea: Idea
+  onDelete: () => void
+  onLogAnalytics: () => void
+  router: ReturnType<typeof useRouter>
+}) {
   const status = statusConfig[idea.status as IdeaStatus] || statusConfig.draft
   const StatusIcon = status.icon
   const priority = priorityConfig[idea.priority as number]
+  const platforms = (idea as any).platforms as string[] | null
 
   return (
     <div className="bg-card border rounded-xl overflow-hidden hover:shadow-lg transition-shadow group">
       <div className="p-4 space-y-3">
-        {/* Title - Clickable */}
+        {/* Title */}
         <button onClick={() => router.push(`/ideas/${idea.id}`)} className="block text-left w-full">
           <h3 className="font-medium line-clamp-2 group-hover:text-primary transition-colors">
             {idea.title}
@@ -380,66 +423,83 @@ function IdeaGridCard({ idea, onDelete, router }: { idea: Idea; onDelete: () => 
 
         {/* Hook */}
         {idea.hook && (
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {idea.hook}
-          </p>
+          <p className="text-sm text-muted-foreground line-clamp-2">{idea.hook}</p>
         )}
 
         {/* Tags */}
         <div className="flex flex-wrap gap-1.5">
           {idea.content_pillar && (
-            <Badge 
-              variant="secondary" 
+            <Badge
+              variant="secondary"
               className="text-xs"
-              style={{ 
-                backgroundColor: `${idea.content_pillar.color}20`,
-                color: idea.content_pillar.color,
-              }}
+              style={{ backgroundColor: `${idea.content_pillar.color}20`, color: idea.content_pillar.color }}
             >
               {idea.content_pillar.name}
             </Badge>
           )}
           {idea.category && (
-            <Badge variant="outline" className="text-xs">
-              {idea.category.name}
-            </Badge>
+            <Badge variant="outline" className="text-xs">{idea.category.name}</Badge>
           )}
         </div>
 
+        {/* Platform badges */}
+        {platforms && platforms.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {platforms.map((p) => (
+              <span key={p} className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+                {PLATFORM_LABELS[p] || p}
+              </span>
+            ))}
+          </div>
+        )}
+
         {/* Footer */}
         <div className="flex items-center justify-between pt-2 border-t">
-          <Badge className={cn("gap-1", status.bgColor, status.color)}>
+          <Badge className={cn('gap-1', status.bgColor, status.color)}>
             <StatusIcon className="h-3 w-3" />
             {status.label}
           </Badge>
           {priority && (
             <div className="flex items-center gap-1">
-              <div className={cn("w-2 h-2 rounded-full", priority.color)} />
+              <div className={cn('w-2 h-2 rounded-full', priority.color)} />
               <span className="text-xs text-muted-foreground">{priority.label}</span>
             </div>
           )}
         </div>
 
-        {/* Action Buttons - Edit and Delete only */}
-        <div className="flex gap-2 pt-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex-1"
-            onClick={() => router.push(`/production?id=${idea.id}`)}
-          >
-            <Pencil className="h-3.5 w-3.5 mr-1.5" />
-            Edit
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-            onClick={onDelete}
-          >
-            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-            Delete
-          </Button>
+        {/* Action Buttons */}
+        <div className="flex flex-col gap-2 pt-2">
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => router.push(`/production?id=${idea.id}`)}
+            >
+              <Pencil className="h-3.5 w-3.5 mr-1.5" />
+              Edit
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+              onClick={onDelete}
+            >
+              <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+              Delete
+            </Button>
+          </div>
+          {idea.status === 'published' && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+              onClick={onLogAnalytics}
+            >
+              <BarChart2 className="h-3.5 w-3.5 mr-1.5" />
+              Log Analytics
+            </Button>
+          )}
         </div>
       </div>
     </div>
@@ -447,7 +507,12 @@ function IdeaGridCard({ idea, onDelete, router }: { idea: Idea; onDelete: () => 
 }
 
 // List Row Component
-function IdeaListRow({ idea, onDelete, router }: { idea: Idea; onDelete: () => void; router: ReturnType<typeof useRouter> }) {
+function IdeaListRow({ idea, onDelete, onLogAnalytics, router }: {
+  idea: Idea
+  onDelete: () => void
+  onLogAnalytics: () => void
+  router: ReturnType<typeof useRouter>
+}) {
   const status = statusConfig[idea.status as IdeaStatus] || statusConfig.draft
   const StatusIcon = status.icon
   const priority = priorityConfig[idea.priority as number]
@@ -490,18 +555,29 @@ function IdeaListRow({ idea, onDelete, router }: { idea: Idea; onDelete: () => v
           {status.label}
         </Badge>
 
-        {/* Actions - Edit and Delete only */}
+        {/* Actions */}
         <div className="flex items-center gap-1 shrink-0">
-          <Button 
-            variant="ghost" 
+          {idea.status === 'published' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+              title="Log Analytics"
+              onClick={onLogAnalytics}
+            >
+              <BarChart2 className="h-4 w-4" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
             size="sm"
             onClick={() => router.push(`/production?id=${idea.id}`)}
           >
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             className="text-red-600 hover:text-red-700 hover:bg-red-50"
             onClick={onDelete}
           >
@@ -510,5 +586,156 @@ function IdeaListRow({ idea, onDelete, router }: { idea: Idea; onDelete: () => v
         </div>
       </div>
     </div>
+  )
+}
+
+// Video Analytics Dialog
+function VideoAnalyticsDialog({ idea, userId, open, onClose, supabase }: {
+  idea: Idea | null
+  userId: string
+  open: boolean
+  onClose: () => void
+  supabase: ReturnType<typeof createUntypedClient>
+}) {
+  const emptyForm = {
+    platform: '',
+    posted_at: new Date().toISOString().split('T')[0],
+    views: '',
+    likes: '',
+    comments: '',
+    shares: '',
+    saves: '',
+    reach: '',
+    notes: '',
+  }
+  const [form, setForm] = useState(emptyForm)
+  const [isLoading, setIsLoading] = useState(false)
+  const { toast } = useToast()
+
+  const ideaPlatforms = (idea as any)?.platforms as string[] | null
+  const platformOptions = ideaPlatforms && ideaPlatforms.length > 0
+    ? ideaPlatforms
+    : Object.keys(PLATFORM_LABELS)
+
+  const set = (key: string, value: string) => setForm((prev) => ({ ...prev, [key]: value }))
+
+  const handleClose = () => { onClose(); setForm(emptyForm) }
+
+  const handleSubmit = async () => {
+    if (!idea || !form.platform) {
+      toast({ title: 'Error', description: 'Please select a platform.', variant: 'destructive' })
+      return
+    }
+    setIsLoading(true)
+    try {
+      const { error } = await supabase.from('video_analytics').insert({
+        user_id: userId,
+        idea_id: idea.id,
+        platform: form.platform,
+        posted_at: form.posted_at || null,
+        views: parseInt(form.views) || 0,
+        likes: parseInt(form.likes) || 0,
+        comments: parseInt(form.comments) || 0,
+        shares: parseInt(form.shares) || 0,
+        saves: parseInt(form.saves) || 0,
+        reach: parseInt(form.reach) || 0,
+        notes: form.notes || null,
+      })
+      if (error) throw error
+      toast({
+        title: 'Analytics saved',
+        description: `Metrics logged for "${idea.title}" on ${PLATFORM_LABELS[form.platform] || form.platform}.`,
+      })
+      handleClose()
+    } catch (err) {
+      console.error(err)
+      toast({ title: 'Error', description: 'Unable to save analytics.', variant: 'destructive' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const metrics = [
+    { key: 'views', label: 'Views' },
+    { key: 'likes', label: 'Likes' },
+    { key: 'comments', label: 'Comments' },
+    { key: 'shares', label: 'Shares' },
+    { key: 'saves', label: 'Saves' },
+    { key: 'reach', label: 'Reach' },
+  ]
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <BarChart2 className="h-5 w-5 text-blue-600" />
+            Log Video Analytics
+          </DialogTitle>
+          <DialogDescription className="truncate">{idea?.title}</DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          {/* Platform */}
+          <div className="space-y-1.5">
+            <Label>Platform <span className="text-red-500">*</span></Label>
+            <Select value={form.platform} onValueChange={(v) => set('platform', v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select platform..." />
+              </SelectTrigger>
+              <SelectContent>
+                {platformOptions.map((p) => (
+                  <SelectItem key={p} value={p}>{PLATFORM_LABELS[p] || p}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Posted date */}
+          <div className="space-y-1.5">
+            <Label>Date posted</Label>
+            <Input
+              type="date"
+              value={form.posted_at}
+              onChange={(e) => set('posted_at', e.target.value)}
+            />
+          </div>
+
+          {/* Metrics grid */}
+          <div className="grid grid-cols-2 gap-3">
+            {metrics.map(({ key, label }) => (
+              <div key={key} className="space-y-1.5">
+                <Label>{label}</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  value={form[key as keyof typeof form]}
+                  onChange={(e) => set(key, e.target.value)}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Notes */}
+          <div className="space-y-1.5">
+            <Label>Notes (optional)</Label>
+            <Textarea
+              rows={2}
+              placeholder="Any notes about this post's performance..."
+              value={form.notes}
+              onChange={(e) => set('notes', e.target.value)}
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleSubmit} disabled={isLoading}>
+            {isLoading ? 'Saving…' : 'Save Analytics'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

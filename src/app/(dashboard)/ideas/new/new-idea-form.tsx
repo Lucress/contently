@@ -394,15 +394,27 @@ export function NewIdeaForm({
               <TabsContent value="details" className="mt-0 space-y-6">
                 <div className="space-y-2">
                   <Label>Platforms</Label>
+                  <p className="text-xs text-muted-foreground">Where will this content be published?</p>
                   <div className="flex flex-wrap gap-2">
-                    {['tiktok', 'instagram_reels', 'youtube_shorts', 'youtube', 'linkedin', 'twitter'].map((platform) => (
+                    {[
+                      { id: 'youtube_shorts', label: 'YouTube Shorts' },
+                      { id: 'youtube', label: 'YouTube' },
+                      { id: 'tiktok', label: 'TikTok' },
+                      { id: 'instagram_reels', label: 'Instagram Reels' },
+                      { id: 'instagram_feed', label: 'Instagram Feed' },
+                      { id: 'facebook', label: 'Facebook' },
+                      { id: 'linkedin', label: 'LinkedIn' },
+                      { id: 'twitter', label: 'X / Twitter' },
+                      { id: 'pinterest', label: 'Pinterest' },
+                      { id: 'podcast', label: 'Podcast' },
+                    ].map((p) => (
                       <Badge
-                        key={platform}
-                        variant={formData.platforms.includes(platform) ? "default" : "outline"}
-                        className="cursor-pointer"
-                        onClick={() => togglePlatform(platform)}
+                        key={p.id}
+                        variant={formData.platforms.includes(p.id) ? "default" : "outline"}
+                        className="cursor-pointer select-none"
+                        onClick={() => togglePlatform(p.id)}
                       >
-                        {platform.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        {p.label}
                       </Badge>
                     ))}
                   </div>
