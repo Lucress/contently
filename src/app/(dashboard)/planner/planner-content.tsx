@@ -581,9 +581,30 @@ export function PlannerContent({
                         )
                       })}
                       {dayItems.length > (viewMode === 'week' ? 4 : 2) && (
-                        <button className="text-xs text-primary hover:underline">
-                          +{dayItems.length - (viewMode === 'week' ? 4 : 2)} more
-                        </button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="text-xs text-primary hover:underline">
+                              +{dayItems.length - (viewMode === 'week' ? 4 : 2)} more
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="w-56">
+                            {dayItems.slice(viewMode === 'week' ? 4 : 2).map((item) => (
+                              item.idea ? (
+                                <DropdownMenuItem key={item.id} asChild>
+                                  <Link href={`/ideas/${item.idea.id}`}>
+                                    <Eye className="h-4 w-4 mr-2 shrink-0" />
+                                    <span className="truncate">{item.idea.title || 'Untitled'}</span>
+                                  </Link>
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem key={item.id} disabled>
+                                  <Clock className="h-4 w-4 mr-2 shrink-0" />
+                                  <span className="truncate">{item.title || 'Untitled'}</span>
+                                </DropdownMenuItem>
+                              )
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       )}
                     </div>
                   </div>

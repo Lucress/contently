@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { createClient, createUntypedClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -139,6 +139,33 @@ export function SettingsContent({
   const router = useRouter()
   const supabase = createClient()
   const supabaseMutation = createUntypedClient()
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Invalid file', description: 'Please select an image file.', variant: 'destructive' })
+      return
+    }
+    setIsLoading(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `${userId}/avatar.${ext}`
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
+      if (uploadError) throw uploadError
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+      const { error: updateError } = await supabaseMutation.from('profiles').update({ avatar_url: publicUrl }).eq('id', userId)
+      if (updateError) throw updateError
+      setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : prev)
+      toast({ title: 'Avatar updated' })
+    } catch (error: any) {
+      toast({ title: 'Upload failed', description: error.message, variant: 'destructive' })
+    } finally {
+      setIsLoading(false)
+      if (avatarInputRef.current) avatarInputRef.current.value = ''
+    }
+  }
 
   // Billing handlers
   const handleUpgrade = async (planId: 'pro' | 'creator_plus') => {
@@ -561,10 +588,19 @@ export function SettingsContent({
                     <User className="h-10 w-10 text-muted-foreground" />
                   )}
                 </div>
-                <Button 
-                  size="icon" 
-                  variant="outline" 
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarUpload}
+                />
+                <Button
+                  size="icon"
+                  variant="outline"
                   className="absolute -bottom-1 -right-1 rounded-full h-8 w-8"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={isLoading}
                 >
                   <Camera className="h-4 w-4" />
                 </Button>

@@ -150,7 +150,7 @@ export function EmailHubContent({
         email.snippet?.toLowerCase().includes(searchQuery.toLowerCase())
       
       if (activeTab === 'inbox') {
-        return matchesSearch && email.folder === 'inbox'
+        return matchesSearch && email.folder === 'inbox' && !email.is_archived
       } else if (activeTab === 'sent') {
         return matchesSearch && email.folder === 'sent'
       } else if (activeTab === 'starred') {
@@ -488,6 +488,53 @@ export function EmailHubContent({
     }
   }
 
+  const handleForwardEmail = (email: EmailMessage) => {
+    setComposeForm({
+      to: '',
+      subject: `Fwd: ${email.subject || ''}`,
+      body: `\n\n---------- Forwarded message ----------\nFrom: ${email.from_email}\n\n${email.body_text || ''}`,
+      account_id: email.email_account_id || '',
+      template_id: '',
+    })
+    setIsComposeDialogOpen(true)
+  }
+
+  const handleArchiveEmail = async (email: EmailMessage) => {
+    try {
+      const { error } = await supabaseMutation
+        .from('email_messages')
+        .update({ is_archived: true })
+        .eq('id', email.id)
+
+      if (error) throw error
+
+      setEmails(prev => prev.map(e => e.id === email.id ? { ...e, is_archived: true } : e))
+      setSelectedEmail(null)
+      toast({ title: 'Email archived' })
+    } catch (error) {
+      console.error(error)
+      toast({ title: 'Failed to archive email', variant: 'destructive' })
+    }
+  }
+
+  const handleDeleteEmail = async (email: EmailMessage) => {
+    try {
+      const { error } = await supabaseMutation
+        .from('email_messages')
+        .delete()
+        .eq('id', email.id)
+
+      if (error) throw error
+
+      setEmails(prev => prev.filter(e => e.id !== email.id))
+      setSelectedEmail(null)
+      toast({ title: 'Email deleted' })
+    } catch (error) {
+      console.error(error)
+      toast({ title: 'Failed to delete email', variant: 'destructive' })
+    }
+  }
+
   return (
     <div className="p-6 lg:p-8 h-[calc(100vh-4rem)]">
       <div className="flex flex-col h-full">
@@ -789,12 +836,12 @@ export function EmailHubContent({
                                 <Reply className="h-4 w-4 mr-2" />
                                 Reply
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleForwardEmail(selectedEmail)}>
                                 <Forward className="h-4 w-4 mr-2" />
                                 Forward
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleArchiveEmail(selectedEmail)}>
                                 <Archive className="h-4 w-4 mr-2" />
                                 Archive
                               </DropdownMenuItem>
@@ -816,7 +863,7 @@ export function EmailHubContent({
                                   <DropdownMenuSeparator />
                                 </>
                               )}
-                              <DropdownMenuItem className="text-red-600">
+                              <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteEmail(selectedEmail)}>
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Delete
                               </DropdownMenuItem>

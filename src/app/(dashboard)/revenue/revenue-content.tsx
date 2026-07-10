@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { createClient, createUntypedClient } from '@/lib/supabase/client'
 import { 
@@ -290,6 +291,26 @@ export function RevenueContent({
     }
   }
 
+  const handleExportCSV = () => {
+    const headers = ['Date', 'Description', 'Source', 'Amount', 'Currency', 'Brand']
+    const rows = revenues.map(r => [
+      format(new Date(r.date), 'yyyy-MM-dd'),
+      r.description || '',
+      sourceTypes[r.source as keyof typeof sourceTypes]?.label || r.source,
+      r.amount.toString(),
+      r.currency,
+      r.deal?.brand?.name || '',
+    ])
+    const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `revenue-${format(new Date(), 'yyyy-MM-dd')}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const formatCurrency = (amount: number, currency: string = 'EUR') => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
@@ -539,7 +560,7 @@ export function RevenueContent({
           <div className="bg-card border rounded-xl">
             <div className="p-4 border-b flex items-center justify-between">
               <h3 className="font-medium">All Transactions</h3>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleExportCSV}>
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </Button>
@@ -620,8 +641,8 @@ export function RevenueContent({
             <p className="text-muted-foreground max-w-md mx-auto mb-4">
               Connectez vos comptes sociaux pour suivre les performances de vos contenus (vues, likes, commentaires).
             </p>
-            <Button variant="outline">
-              Connecter mes comptes
+            <Button variant="outline" asChild>
+              <Link href="/settings">Connecter mes comptes</Link>
             </Button>
           </div>
         </TabsContent>

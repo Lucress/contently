@@ -94,8 +94,8 @@ export function Topbar({ user, profile, subscription }: TopbarProps) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
+        {/* Notifications — not yet implemented */}
+        <Button variant="ghost" size="icon" className="relative opacity-50 cursor-not-allowed" disabled title="Notifications coming soon">
           <Bell className="h-4 w-4" />
         </Button>
 
@@ -130,11 +130,13 @@ export function Topbar({ user, profile, subscription }: TopbarProps) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="justify-between">
-              Current Plan
-              <span className="text-xs bg-muted text-foreground px-1.5 py-0.5 rounded">
-                {planLabel}
-              </span>
+            <DropdownMenuItem asChild>
+              <Link href="/settings?tab=billing" className="flex items-center justify-between">
+                Current Plan
+                <span className="text-xs bg-muted text-foreground px-1.5 py-0.5 rounded">
+                  {planLabel}
+                </span>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
