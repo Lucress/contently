@@ -74,3 +74,11 @@ Migrations live in `supabase/migrations/` (5 files). Schema includes: `profiles`
 - **Hosting**: Vercel
 - **Domain**: contentlyapp.com
 - **Google OAuth**: Configured in Supabase Auth provider settings (no app-level env vars needed). Redirect URI in Google Cloud Console: `https://qszigejfvaycixgxbhrp.supabase.co/auth/v1/callback`
+
+## Design Context
+
+- **Register**: product (dashboard + app UI), with a public brand surface (landing + blog)
+- **North Star**: "The Editorial Partner" — fast, readable, never in the way
+- **Strategy**: `PRODUCT.md` — who/what/why; `DESIGN.md` — how it looks
+- **Key rule**: Creator Violet (`#7c3aed`) is reserved exclusively for Creator+ / premium UI. The core palette is achromatic (near-black ink, white canvas, gray scale).
+- **Live mode**: pre-configured for Next.js App Router in `.impeccable/live/config.json`. Run `/impeccable live` to start browser variant mode.
