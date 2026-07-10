@@ -190,7 +190,7 @@ export function NewIdeaForm({
         filming_notes: formData.filming_notes || null,
         priority: formData.priority,
         platforms: formData.platforms.length > 0 ? formData.platforms : null,
-        status: formData.status,
+        status: (formData.status as string) === 'idea' ? 'draft' : formData.status,
         inspiration_id: fromInspiration || null,
       }
       

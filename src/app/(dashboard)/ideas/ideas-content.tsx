@@ -215,10 +215,12 @@ export function IdeasContent({
   }
 
   const handleStatusChange = async (ideaId: string, newStatus: string) => {
+    // 'idea' is not in the ENUM until the migration runs; save as 'draft' which normalizes to 'idea' in the UI
+    const dbStatus = newStatus === 'idea' ? 'draft' : newStatus
     try {
       const { error } = await supabaseMutation
         .from('ideas')
-        .update({ status: newStatus })
+        .update({ status: dbStatus })
         .eq('id', ideaId)
       if (error) throw error
       setIdeas(prev => prev.map(i => i.id === ideaId ? { ...i, status: newStatus as Idea['status'] } : i))

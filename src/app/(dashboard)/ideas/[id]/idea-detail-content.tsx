@@ -153,9 +153,11 @@ export function IdeaDetailContent({
   const priority = priorityConfig[idea.priority as number] || priorityConfig[2]
 
   const handleStatusChange = async (newStatus: IdeaStatus) => {
+    // 'idea' is not in the ENUM until the migration runs; save as 'draft' which normalizes to 'idea' in the UI
+    const dbStatus = (newStatus as string) === 'idea' ? 'draft' : newStatus
     try {
-      const updates: any = { status: newStatus }
-      
+      const updates: any = { status: dbStatus }
+
       // Auto-set dates based on status
       if (newStatus === 'filmed' && !idea.filmed_at) {
         updates.filmed_at = new Date().toISOString()
@@ -171,7 +173,7 @@ export function IdeaDetailContent({
 
       if (error) throw error
 
-      setIdea(prev => ({ ...prev, ...updates }))
+      setIdea(prev => ({ ...prev, ...updates, status: newStatus }))
       
       toast({
         title: 'Status updated',

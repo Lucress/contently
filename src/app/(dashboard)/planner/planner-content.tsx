@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { createUntypedClient } from '@/lib/supabase/client'
-import Link from 'next/link'
 import {
   ChevronLeft,
   ChevronRight,
@@ -141,6 +141,7 @@ export function PlannerContent({
   const [pendingPublishTime, setPendingPublishTime] = useState<string>('12:00')
 
   const { toast } = useToast()
+  const router = useRouter()
   const supabaseMutation = createUntypedClient()
 
   // Calculate days to display based on view mode
@@ -553,11 +554,9 @@ export function PlannerContent({
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                   {item.idea && (
-                                    <DropdownMenuItem asChild>
-                                      <Link href={`/ideas/${item.idea.id}`}>
-                                        <Eye className="h-4 w-4 mr-2" />
-                                        View Idea
-                                      </Link>
+                                    <DropdownMenuItem onSelect={() => router.push(`/ideas/${item.idea!.id}`)}>
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      View Idea
                                     </DropdownMenuItem>
                                   )}
                                   <DropdownMenuSeparator />
@@ -590,11 +589,9 @@ export function PlannerContent({
                           <DropdownMenuContent align="start" className="w-56">
                             {dayItems.slice(viewMode === 'week' ? 4 : 2).map((item) => (
                               item.idea ? (
-                                <DropdownMenuItem key={item.id} asChild>
-                                  <Link href={`/ideas/${item.idea.id}`}>
-                                    <Eye className="h-4 w-4 mr-2 shrink-0" />
-                                    <span className="truncate">{item.idea.title || 'Untitled'}</span>
-                                  </Link>
+                                <DropdownMenuItem key={item.id} onSelect={() => router.push(`/ideas/${item.idea!.id}`)}>
+                                  <Eye className="h-4 w-4 mr-2 shrink-0" />
+                                  <span className="truncate">{item.idea.title || 'Untitled'}</span>
                                 </DropdownMenuItem>
                               ) : (
                                 <DropdownMenuItem key={item.id} disabled>
