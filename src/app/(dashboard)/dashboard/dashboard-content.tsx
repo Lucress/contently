@@ -312,7 +312,7 @@ export function DashboardContent({
               {t.nav.planner}
             </Link>
           </Button>
-          <Button asChild className="bg-brand-600 hover:bg-brand-700">
+          <Button asChild>
             <Link href="/ideas/new">
               <Plus className="w-4 h-4 mr-2" />
               {t.ideas.newIdea}
@@ -324,7 +324,7 @@ export function DashboardContent({
       {/* Content Pillars Section - Clean & Self-contained */}
       <motion.div variants={item}>
         <Card className="overflow-hidden">
-          <CardHeader className="pb-4 bg-gradient-to-r from-brand-50 to-white dark:from-brand-950/30 dark:to-background">
+          <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-lg">
@@ -340,7 +340,7 @@ export function DashboardContent({
                 <Button 
                   onClick={() => setIsAddingPillar(true)}
                   size="sm"
-                  className="bg-brand-600 hover:bg-brand-700"
+                  className=""
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   {language === 'fr' ? 'Ajouter' : 'Add'}
@@ -356,7 +356,7 @@ export function DashboardContent({
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="mb-4 p-4 rounded-xl border-2 border-dashed border-brand-300 bg-brand-50/50 dark:bg-brand-950/20"
+                  className="mb-4 p-4 rounded-xl border-2 border-dashed border-border bg-muted/30"
                 >
                   <div className="space-y-4">
                     <div className="grid gap-3 sm:grid-cols-2">
@@ -364,12 +364,12 @@ export function DashboardContent({
                         placeholder={language === 'fr' ? 'Nom du pilier...' : 'Pillar name...'}
                         value={newPillar.name}
                         onChange={(e) => setNewPillar({ ...newPillar, name: e.target.value })}
-                        className="border-brand-200 focus:border-brand-400"
+                        className=""
                       />
                       <select
                         value={newPillar.contentType}
                         onChange={(e) => setNewPillar({ ...newPillar, contentType: e.target.value })}
-                        className="flex h-10 w-full rounded-md border border-brand-200 bg-background px-3 py-2 text-sm focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-400/20"
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
                       >
                         <option value="">{language === 'fr' ? 'Type de contenu...' : 'Content type...'}</option>
                         {contentTypeOptions.map((type) => (
@@ -384,7 +384,7 @@ export function DashboardContent({
                       value={newPillar.description}
                       onChange={(e) => setNewPillar({ ...newPillar, description: e.target.value })}
                       rows={2}
-                      className="border-brand-200 focus:border-brand-400 resize-none"
+                      className=" resize-none"
                     />
                     <div className="relative">
                       <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -392,7 +392,7 @@ export function DashboardContent({
                         placeholder={language === 'fr' ? 'Hashtags (séparés par virgule ou espace)' : 'Hashtags (comma or space separated)'}
                         value={newPillar.hashtags}
                         onChange={(e) => setNewPillar({ ...newPillar, hashtags: e.target.value })}
-                        className="pl-9 border-brand-200 focus:border-brand-400"
+                        className="pl-9 "
                       />
                     </div>
                     <div className="flex items-center gap-2">
@@ -406,7 +406,7 @@ export function DashboardContent({
                             type="button"
                             onClick={() => setNewPillar({ ...newPillar, color })}
                             className={`w-6 h-6 rounded-full transition-transform hover:scale-110 ${
-                              newPillar.color === color ? 'ring-2 ring-offset-2 ring-brand-500' : ''
+                              newPillar.color === color ? 'ring-2 ring-offset-2 ring-ring' : ''
                             }`}
                             style={{ backgroundColor: color }}
                           />
@@ -418,7 +418,6 @@ export function DashboardContent({
                         onClick={handleAddPillar}
                         disabled={isLoading || !newPillar.name.trim()}
                         size="sm"
-                        className="bg-brand-600 hover:bg-brand-700"
                       >
                         <Save className="w-4 h-4 mr-1" />
                         {language === 'fr' ? 'Créer' : 'Create'}
@@ -426,7 +425,7 @@ export function DashboardContent({
                       <Button
                         onClick={() => {
                           setIsAddingPillar(false)
-                          setNewPillar({ name: '', description: '', color: '#8b5cf6', hashtags: '', contentType: '' })
+                          setNewPillar({ name: '', description: '', color: '#64748b', hashtags: '', contentType: '' })
                         }}
                         variant="ghost"
                         size="sm"
@@ -453,19 +452,19 @@ export function DashboardContent({
                     >
                       {editingPillarId === pillar.id ? (
                         /* Edit mode */
-                        <div className="p-4 rounded-xl border-2 border-brand-400 bg-white dark:bg-background">
+                        <div className="p-4 rounded-xl border-2 border-border bg-white dark:bg-background">
                           <div className="space-y-3">
                             <div className="grid gap-2 sm:grid-cols-2">
                               <Input
                                 value={editPillar.name}
                                 onChange={(e) => setEditPillar({ ...editPillar, name: e.target.value })}
-                                className="border-brand-200"
+                                className=""
                                 placeholder={language === 'fr' ? 'Nom' : 'Name'}
                               />
                               <select
                                 value={editPillar.contentType}
                                 onChange={(e) => setEditPillar({ ...editPillar, contentType: e.target.value })}
-                                className="flex h-10 w-full rounded-md border border-brand-200 bg-background px-3 py-2 text-sm focus:border-brand-400 focus:outline-none"
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
                               >
                                 <option value="">{language === 'fr' ? 'Type de contenu...' : 'Content type...'}</option>
                                 {contentTypeOptions.map((type) => (
@@ -479,7 +478,7 @@ export function DashboardContent({
                               value={editPillar.description}
                               onChange={(e) => setEditPillar({ ...editPillar, description: e.target.value })}
                               rows={2}
-                              className="border-brand-200 resize-none"
+                              className="resize-none"
                               placeholder={language === 'fr' ? 'Description' : 'Description'}
                             />
                             <div className="relative">
@@ -487,7 +486,7 @@ export function DashboardContent({
                               <Input
                                 value={editPillar.hashtags}
                                 onChange={(e) => setEditPillar({ ...editPillar, hashtags: e.target.value })}
-                                className="pl-8 border-brand-200"
+                                className="pl-8"
                                 placeholder={language === 'fr' ? 'Hashtags' : 'Hashtags'}
                               />
                             </div>
@@ -498,7 +497,7 @@ export function DashboardContent({
                                   type="button"
                                   onClick={() => setEditPillar({ ...editPillar, color })}
                                   className={`w-5 h-5 rounded-full transition-transform hover:scale-110 ${
-                                    editPillar.color === color ? 'ring-2 ring-offset-1 ring-brand-500' : ''
+                                    editPillar.color === color ? 'ring-2 ring-offset-1 ring-ring' : ''
                                   }`}
                                   style={{ backgroundColor: color }}
                                 />
@@ -509,7 +508,7 @@ export function DashboardContent({
                                 onClick={() => handleEditPillar(pillar.id)}
                                 disabled={isLoading}
                                 size="sm"
-                                className="bg-brand-600 hover:bg-brand-700"
+                                className=""
                               >
                                 <Save className="w-3 h-3 mr-1" />
                                 {language === 'fr' ? 'Sauver' : 'Save'}
@@ -546,14 +545,14 @@ export function DashboardContent({
                             </div>
                             <Badge 
                               variant="secondary" 
-                              className="text-xs bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"
+                              className="text-xs"
                             >
                               {pillar.ideaCount} {language === 'fr' ? 'idées' : 'ideas'}
                             </Badge>
                           </div>
                           
                           <Link href={`/ideas?pillar=${pillar.id}`} className="block">
-                            <h3 className="font-semibold text-sm mb-1 hover:text-brand-600 transition-colors">{pillar.name}</h3>
+                            <h3 className="font-semibold text-sm mb-1 hover:text-foreground transition-colors">{pillar.name}</h3>
                             {pillar.description && (
                               <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
                                 {pillar.description}
@@ -575,7 +574,7 @@ export function DashboardContent({
                                     e.preventDefault()
                                     copyHashtags(pillar)
                                   }}
-                                  className="flex items-center gap-1 text-xs text-brand-600 hover:text-brand-700 transition-colors"
+                                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                                 >
                                   {copiedPillarId === pillar.id ? (
                                     <>
@@ -594,7 +593,7 @@ export function DashboardContent({
                                 {pillar.hashtags.slice(0, 5).map((tag, i) => (
                                   <span 
                                     key={i}
-                                    className="text-xs px-2 py-0.5 rounded-full bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-300"
+                                    className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground"
                                   >
                                     #{tag}
                                   </span>
@@ -616,7 +615,7 @@ export function DashboardContent({
                                 e.preventDefault()
                                 startEditing(pillar)
                               }}
-                              className="p-1.5 rounded-lg bg-white dark:bg-background shadow-sm border hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+                              className="p-1.5 rounded-lg bg-white dark:bg-background shadow-sm border hover:bg-muted transition-colors"
                             >
                               <Edit3 className="w-3 h-3 text-muted-foreground" />
                             </button>
@@ -642,8 +641,8 @@ export function DashboardContent({
                   animate={{ opacity: 1 }}
                   className="text-center py-8"
                 >
-                  <div className="w-16 h-16 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center mx-auto mb-4">
-                    <Lightbulb className="w-8 h-8 text-brand-500" />
+                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                    <Lightbulb className="w-8 h-8 text-muted-foreground" />
                   </div>
                   <h3 className="font-medium mb-2">
                     {language === 'fr' ? 'Créez votre premier pilier' : 'Create your first pillar'}
@@ -655,7 +654,7 @@ export function DashboardContent({
                   </p>
                   <Button 
                     onClick={() => setIsAddingPillar(true)}
-                    className="bg-brand-600 hover:bg-brand-700"
+                    className=""
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     {language === 'fr' ? 'Créer un pilier' : 'Create a pillar'}
@@ -670,12 +669,12 @@ export function DashboardContent({
       {/* Stats Cards */}
       <motion.div variants={item} className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Link href="/ideas">
-          <Card className="card-hover border-l-4 border-l-brand-500 cursor-pointer hover:shadow-md transition-shadow">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {t.dashboard.stats.totalIdeas}
               </CardTitle>
-              <Lightbulb className="h-4 w-4 text-brand-500" />
+              <Lightbulb className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{stats.totalIdeas}</div>
@@ -687,12 +686,12 @@ export function DashboardContent({
         </Link>
 
         <Link href="/inspirations">
-          <Card className="card-hover border-l-4 border-l-brand-400 cursor-pointer hover:shadow-md transition-shadow">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {t.dashboard.stats.pendingInspirations}
               </CardTitle>
-              <Sparkles className="h-4 w-4 text-brand-400" />
+              <Sparkles className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{stats.pendingInspirations}</div>
@@ -704,12 +703,12 @@ export function DashboardContent({
         </Link>
 
         <Link href="/collab">
-          <Card className="card-hover border-l-4 border-l-brand-600 cursor-pointer hover:shadow-md transition-shadow">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {t.nav.collab}
               </CardTitle>
-              <Handshake className="h-4 w-4 text-brand-600" />
+              <Handshake className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">{stats.activeDeals}</div>
@@ -721,7 +720,7 @@ export function DashboardContent({
         </Link>
 
         <Link href="/revenue">
-          <Card className="card-hover border-l-4 border-l-green-500 cursor-pointer hover:shadow-md transition-shadow">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {t.dashboard.stats.monthlyRevenue}
@@ -785,7 +784,7 @@ export function DashboardContent({
                     <Link
                       key={idea.id}
                       href={`/ideas/${idea.id}`}
-                      className="flex items-center justify-between p-3 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+                      className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <div
@@ -806,9 +805,9 @@ export function DashboardContent({
                 </div>
               ) : (
                 <div className="mt-6 text-center py-8">
-                  <Lightbulb className="w-12 h-12 text-brand-300 mx-auto mb-3" />
+                  <Lightbulb className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
                   <p className="text-muted-foreground">{t.dashboard.noIdeas}</p>
-                  <Button variant="outline" className="mt-3 border-brand-200 hover:bg-brand-50" asChild>
+                  <Button variant="outline" className="mt-3" asChild>
                     <Link href="/ideas/new">
                       <Plus className="w-4 h-4 mr-2" />
                       {t.dashboard.createIdea}
@@ -827,7 +826,7 @@ export function DashboardContent({
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-3">
                 <CardTitle className="text-base">{t.dashboard.pendingTasks}</CardTitle>
-                <Badge variant="secondary" className="bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">{stats.pendingTasks}</Badge>
+                <Badge variant="secondary">{stats.pendingTasks}</Badge>
               </CardHeader>
               <CardContent>
                 {tasks.length > 0 ? (
@@ -835,9 +834,9 @@ export function DashboardContent({
                     {tasks.map((task) => (
                       <div
                         key={task.id}
-                        className="flex items-start gap-3 p-2 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+                        className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
                       >
-                        <CheckCircle2 className="w-5 h-5 text-brand-400 shrink-0 mt-0.5" />
+                        <CheckCircle2 className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{task.title}</p>
                           {task.due_date && (
@@ -877,7 +876,7 @@ export function DashboardContent({
                       <Link
                         key={inspiration.id}
                         href={`/inspirations`}
-                        className="block p-3 rounded-lg bg-brand-50 dark:bg-brand-900/20 hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors"
+                        className="block p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
                       >
                         <p className="text-sm font-medium truncate">{inspiration.title}</p>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -888,7 +887,7 @@ export function DashboardContent({
                   </div>
                 ) : (
                   <div className="text-center py-4">
-                    <Sparkles className="w-8 h-8 text-brand-300 mx-auto mb-2" />
+                    <Sparkles className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">{language === 'fr' ? 'Pas d\'inspirations en attente' : 'No pending inspirations'}</p>
                   </div>
                 )}
@@ -914,12 +913,12 @@ export function DashboardContent({
                       <Link
                         key={deal.id}
                         href={`/collab`}
-                        className="block p-3 rounded-lg border border-brand-200 dark:border-brand-800 hover:border-brand-400 dark:hover:border-brand-600 transition-colors"
+                        className="block p-3 rounded-lg border border-border hover:border-foreground/30 transition-colors"
                       >
                         <div className="flex items-center justify-between mb-1">
                           <p className="text-sm font-medium truncate">{deal.title}</p>
                           {deal.budget && (
-                            <span className="text-sm font-semibold text-brand-600">
+                            <span className="text-sm font-semibold text-foreground">
                               {formatCurrency(deal.budget)}
                             </span>
                           )}
@@ -937,9 +936,9 @@ export function DashboardContent({
                   </div>
                 ) : (
                   <div className="text-center py-4">
-                    <Handshake className="w-8 h-8 text-brand-300 mx-auto mb-2" />
+                    <Handshake className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">{language === 'fr' ? 'Aucune collaboration active' : 'No active collaborations'}</p>
-                    <Button variant="outline" size="sm" className="mt-2 border-brand-200 hover:bg-brand-50" asChild>
+                    <Button variant="outline" size="sm" className="mt-2" asChild>
                       <Link href="/collab">
                         <Plus className="w-4 h-4 mr-1" />
                         {t.common.add}

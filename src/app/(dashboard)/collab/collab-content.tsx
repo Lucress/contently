@@ -89,11 +89,11 @@ const dealStatusConfig: Record<string, {
   lead: { label: 'Lead', icon: Users, color: 'text-gray-600', bgColor: 'bg-gray-100 dark:bg-gray-800' },
   contacted: { label: 'Contacted', icon: Send, color: 'text-blue-600', bgColor: 'bg-blue-100 dark:bg-blue-900/30' },
   negotiating: { label: 'Negotiating', icon: Handshake, color: 'text-yellow-600', bgColor: 'bg-yellow-100 dark:bg-yellow-900/30' },
-  proposal_sent: { label: 'Proposal Sent', icon: FileText, color: 'text-brand-600', bgColor: 'bg-brand-100 dark:bg-brand-900/30' },
+  proposal_sent: { label: 'Proposal Sent', icon: FileText, color: 'text-indigo-600', bgColor: 'bg-indigo-100 dark:bg-indigo-900/30' },
   accepted: { label: 'Accepted', icon: CheckCircle2, color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/30' },
   in_progress: { label: 'In Progress', icon: Clock, color: 'text-orange-600', bgColor: 'bg-orange-100 dark:bg-orange-900/30' },
   delivered: { label: 'Delivered', icon: Send, color: 'text-teal-600', bgColor: 'bg-teal-100 dark:bg-teal-900/30' },
-  invoiced: { label: 'Invoiced', icon: FileText, color: 'text-purple-600', bgColor: 'bg-purple-100 dark:bg-purple-900/30' },
+  invoiced: { label: 'Invoiced', icon: FileText, color: 'text-cyan-600', bgColor: 'bg-cyan-100 dark:bg-cyan-900/30' },
   paid: { label: 'Paid', icon: DollarSign, color: 'text-emerald-700', bgColor: 'bg-emerald-100 dark:bg-emerald-900/40' },
   completed: { label: 'Completed', icon: CheckCircle2, color: 'text-green-600', bgColor: 'bg-green-100 dark:bg-green-900/30' },
   lost: { label: 'Lost', icon: XCircle, color: 'text-red-600', bgColor: 'bg-red-100 dark:bg-red-900/30' },
@@ -520,8 +520,8 @@ export function CollabContent({
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
-              <Handshake className="h-4 w-4 text-brand-600" />
+            <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center">
+              <Handshake className="h-4 w-4 text-muted-foreground" />
             </div>
             Collaborations
           </h1>
@@ -530,11 +530,11 @@ export function CollabContent({
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => openBrandDialog()} className="border-brand-200 hover:bg-brand-50 dark:border-brand-800">
+          <Button variant="outline" onClick={() => openBrandDialog()}>
             <Building2 className="h-4 w-4 mr-2" />
             New Brand Partner
           </Button>
-          <Button onClick={() => openDealDialog()} className="bg-brand-600 hover:bg-brand-700">
+          <Button onClick={() => openDealDialog()}>
             <Plus className="h-4 w-4 mr-2" />
             New Deal
           </Button>

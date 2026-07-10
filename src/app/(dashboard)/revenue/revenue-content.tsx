@@ -89,7 +89,7 @@ interface RevenueContentProps {
 const sourceTypes = {
   sponsorship: { label: 'Sponsoring', color: 'bg-blue-500' },
   affiliation: { label: 'Affiliation', color: 'bg-green-500' },
-  product: { label: 'Produit', color: 'bg-purple-500' },
+  product: { label: 'Produit', color: 'bg-slate-500' },
   service: { label: 'Service', color: 'bg-orange-500' },
   adsense: { label: 'AdSense', color: 'bg-red-500' },
   other: { label: 'Autre', color: 'bg-gray-500' },

@@ -106,15 +106,15 @@ const slotTypeConfig = {
   editing: { label: 'Editing', icon: FileEdit, color: 'bg-pink-500' },
   publishing: { label: 'Publishing', icon: Send, color: 'bg-green-500' },
   task: { label: 'Task', icon: Clock, color: 'bg-blue-500' },
-  meeting: { label: 'Meeting', icon: Clock, color: 'bg-purple-500' },
+  meeting: { label: 'Meeting', icon: Clock, color: 'bg-slate-500' },
   other: { label: 'Other', icon: Clock, color: 'bg-gray-500' },
 }
 
 const priorityColors = {
-  low: 'border-l-gray-400',
-  medium: 'border-l-yellow-500',
-  high: 'border-l-orange-500',
-  urgent: 'border-l-red-500',
+  low: 'bg-gray-400',
+  medium: 'bg-yellow-500',
+  high: 'bg-orange-500',
+  urgent: 'bg-red-500',
 }
 
 export function PlannerContent({ 
@@ -529,12 +529,12 @@ export function PlannerContent({
                         return (
                           <div
                             key={item.id}
-                            className={cn(
-                              "group bg-background border rounded-md p-1.5 text-xs cursor-pointer hover:shadow-sm transition-shadow border-l-2",
-                              item.idea?.priority && priorityColors[item.idea.priority as keyof typeof priorityColors]
-                            )}
+                            className="group bg-background border rounded-md p-1.5 text-xs cursor-pointer hover:shadow-sm transition-shadow"
                           >
                             <div className="flex items-center gap-1.5">
+                              {item.idea?.priority && (
+                                <div className={cn("w-1.5 h-1.5 rounded-full shrink-0", priorityColors[item.idea.priority as keyof typeof priorityColors])} />
+                              )}
                               <div className={cn("p-0.5 rounded", slotConfig?.color, "text-white")}>
                                 <SlotIcon className="h-3 w-3" />
                               </div>
@@ -640,13 +640,13 @@ export function PlannerContent({
                         draggable
                         onDragStart={() => handleDragStart(idea)}
                         onDragEnd={handleDragEnd}
-                        className={cn(
-                          "bg-background border rounded-lg p-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-all border-l-4",
-                          idea.priority && priorityColors[idea.priority as keyof typeof priorityColors]
-                        )}
+                        className="bg-background border rounded-lg p-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-all"
                       >
                         <div className="flex items-start gap-2">
                           <GripVertical className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                          {idea.priority && (
+                            <div className={cn("w-2 h-2 rounded-full shrink-0 mt-1.5", priorityColors[idea.priority as keyof typeof priorityColors])} />
+                          )}
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm line-clamp-2">{idea.title}</p>
                             <div className="flex items-center gap-2 mt-1.5">
@@ -696,13 +696,13 @@ export function PlannerContent({
                         draggable
                         onDragStart={() => handleFilmedDragStart(idea)}
                         onDragEnd={handleDragEnd}
-                        className={cn(
-                          "bg-background border rounded-lg p-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-all border-l-4 border-l-green-500",
-                          idea.priority && priorityColors[idea.priority as keyof typeof priorityColors]
-                        )}
+                        className="bg-background border rounded-lg p-3 cursor-grab active:cursor-grabbing hover:shadow-md transition-all"
                       >
                         <div className="flex items-start gap-2">
                           <GripVertical className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                          {idea.priority && (
+                            <div className={cn("w-2 h-2 rounded-full shrink-0 mt-1.5", priorityColors[idea.priority as keyof typeof priorityColors])} />
+                          )}
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-sm line-clamp-2">{idea.title}</p>
                             <div className="flex items-center gap-2 mt-1.5">

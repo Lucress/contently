@@ -86,7 +86,7 @@ const statusConfig: Record<IdeaStatus, {
 }> = {
   draft: { label: 'Draft', color: 'text-gray-600', bgColor: 'bg-gray-100 dark:bg-gray-800' },
   scripted: { label: 'Scripted', color: 'text-blue-600', bgColor: 'bg-blue-100 dark:bg-blue-900/30' },
-  planned: { label: 'Planned', color: 'text-purple-600', bgColor: 'bg-purple-100 dark:bg-purple-900/30' },
+  planned: { label: 'Planned', color: 'text-slate-600', bgColor: 'bg-slate-100 dark:bg-slate-800' },
   to_film: { label: 'To Film', color: 'text-yellow-600', bgColor: 'bg-yellow-100 dark:bg-yellow-900/30' },
   filmed: { label: 'Filmed', color: 'text-orange-600', bgColor: 'bg-orange-100 dark:bg-orange-900/30' },
   editing: { label: 'Editing', color: 'text-pink-600', bgColor: 'bg-pink-100 dark:bg-pink-900/30' },

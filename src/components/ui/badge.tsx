@@ -15,7 +15,7 @@ const badgeVariants = cva(
         // Status-based variants - more muted colors
         draft: 'border-transparent bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
         scripted: 'border-transparent bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
-        planned: 'border-transparent bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
+        planned: 'border-transparent bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
         to_film: 'border-transparent bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
         filmed: 'border-transparent bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
         editing: 'border-transparent bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400',

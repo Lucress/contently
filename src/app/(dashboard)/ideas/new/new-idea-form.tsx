@@ -58,8 +58,8 @@ type IdeaStatus = 'idea' | 'scripted' | 'to_film' | 'filmed' | 'editing' | 'sche
 const STATUS_PIPELINE: { key: IdeaStatus; label: string; icon: React.ElementType; color: string }[] = [
   { key: 'idea',      label: 'Idea',      icon: Lightbulb, color: 'text-amber-600' },
   { key: 'scripted',  label: 'Scripted',  icon: Edit,      color: 'text-blue-600' },
-  { key: 'to_film',   label: 'To Film',   icon: Video,     color: 'text-violet-600' },
-  { key: 'filmed',    label: 'Filmed',    icon: Video,     color: 'text-purple-600' },
+  { key: 'to_film',   label: 'To Film',   icon: Video,     color: 'text-sky-600' },
+  { key: 'filmed',    label: 'Filmed',    icon: Video,     color: 'text-teal-600' },
   { key: 'editing',   label: 'Editing',   icon: Play,      color: 'text-orange-600' },
   { key: 'scheduled', label: 'Scheduled', icon: Clock,     color: 'text-cyan-600' },
   { key: 'published', label: 'Published', icon: Send,      color: 'text-green-600' },

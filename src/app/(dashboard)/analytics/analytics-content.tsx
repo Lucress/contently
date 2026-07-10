@@ -321,7 +321,7 @@ export function AnalyticsContent({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard title="Total Ideas" value={metrics.totalIdeas} change={metrics.ideasGrowth} icon={Lightbulb} color="text-yellow-600" bgColor="bg-yellow-100 dark:bg-yellow-900/30" />
         <MetricCard title="Published" value={metrics.publishedIdeas} subtitle={`${metrics.scriptingIdeas} in progress`} icon={CheckCircle2} color="text-green-600" bgColor="bg-green-100 dark:bg-green-900/30" />
-        <MetricCard title="Inspirations" value={metrics.totalInspirations} subtitle={`${metrics.convertedInspirations} converted`} icon={Sparkles} color="text-purple-600" bgColor="bg-purple-100 dark:bg-purple-900/30" />
+        <MetricCard title="Inspirations" value={metrics.totalInspirations} subtitle={`${metrics.convertedInspirations} converted`} icon={Sparkles} color="text-cyan-600" bgColor="bg-cyan-100 dark:bg-cyan-900/30" />
         <MetricCard title="Revenue" value={formatCurrency(metrics.totalRevenue)} change={metrics.revenueGrowth} icon={DollarSign} color="text-emerald-600" bgColor="bg-emerald-100 dark:bg-emerald-900/30" />
       </div>
 
@@ -354,7 +354,7 @@ export function AnalyticsContent({
                         item.status === 'published' && 'bg-green-500',
                         item.status === 'draft' && 'bg-gray-400',
                         item.status === 'scripted' && 'bg-blue-500',
-                        item.status === 'filming' && 'bg-purple-500',
+                        item.status === 'filming' && 'bg-sky-500',
                         item.status === 'editing' && 'bg-orange-500',
                       )} />
                       <span className="text-sm capitalize">{item.status}</span>
@@ -573,8 +573,8 @@ export function AnalyticsContent({
                   title="Best Platform"
                   value={PLATFORM_LABELS[performanceMetrics.bestPlatform || ''] || '—'}
                   icon={BarChart3}
-                  color="text-violet-600"
-                  bgColor="bg-violet-100 dark:bg-violet-900/30"
+                  color="text-indigo-600"
+                  bgColor="bg-indigo-100 dark:bg-indigo-900/30"
                 />
               </div>
 
@@ -710,14 +710,14 @@ function SimpleTrendChart({ data }: { data: any[] }) {
     <div className="space-y-4">
       <div className="flex items-center gap-4 text-sm">
         <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-yellow-500" /><span>Ideas</span></div>
-        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-purple-500" /><span>Inspirations</span></div>
+        <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-cyan-500" /><span>Inspirations</span></div>
       </div>
       <div className="h-64 flex items-end gap-1">
         {data.map((item, index) => (
           <div key={index} className="flex-1 flex flex-col gap-1 items-center">
             <div className="w-full flex flex-col justify-end h-full gap-0.5">
               <div className="w-full bg-yellow-500 rounded-t transition-all hover:opacity-80" style={{ height: `${(item.ideas / maxIdeas) * 100}%`, minHeight: item.ideas > 0 ? '4px' : '0' }} title={`${item.date}: ${item.ideas} ideas`} />
-              <div className="w-full bg-purple-500 rounded-t transition-all hover:opacity-80" style={{ height: `${(item.inspirations / maxInspirations) * 100}%`, minHeight: item.inspirations > 0 ? '4px' : '0' }} title={`${item.date}: ${item.inspirations} inspirations`} />
+              <div className="w-full bg-cyan-500 rounded-t transition-all hover:opacity-80" style={{ height: `${(item.inspirations / maxInspirations) * 100}%`, minHeight: item.inspirations > 0 ? '4px' : '0' }} title={`${item.date}: ${item.inspirations} inspirations`} />
             </div>
             {index % Math.ceil(data.length / 7) === 0 && <span className="text-xs text-muted-foreground mt-2">{item.date}</span>}
           </div>

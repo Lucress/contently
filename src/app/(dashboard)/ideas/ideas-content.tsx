@@ -92,8 +92,8 @@ const statusConfig: Record<string, {
 }> = {
   idea:      { label: 'Idea',      icon: Lightbulb, color: 'text-amber-600',  bgColor: 'bg-amber-100 dark:bg-amber-900/30' },
   scripted:  { label: 'Scripted',  icon: Pencil,    color: 'text-blue-600',   bgColor: 'bg-blue-100 dark:bg-blue-900/30' },
-  to_film:   { label: 'To Film',   icon: Video,     color: 'text-violet-600', bgColor: 'bg-violet-100 dark:bg-violet-900/30' },
-  filmed:    { label: 'Filmed',    icon: Video,     color: 'text-purple-600', bgColor: 'bg-purple-100 dark:bg-purple-900/30' },
+  to_film:   { label: 'To Film',   icon: Video,     color: 'text-sky-600',    bgColor: 'bg-sky-100 dark:bg-sky-900/30' },
+  filmed:    { label: 'Filmed',    icon: Video,     color: 'text-teal-600',   bgColor: 'bg-teal-100 dark:bg-teal-900/30' },
   editing:   { label: 'Editing',   icon: Play,      color: 'text-orange-600', bgColor: 'bg-orange-100 dark:bg-orange-900/30' },
   scheduled: { label: 'Scheduled', icon: Clock,     color: 'text-cyan-600',   bgColor: 'bg-cyan-100 dark:bg-cyan-900/30' },
   published: { label: 'Published', icon: Send,      color: 'text-green-600',  bgColor: 'bg-green-100 dark:bg-green-900/30' },

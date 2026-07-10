@@ -98,8 +98,8 @@ const statusConfig: Record<InspirationStatus, {
   converted: {
     label: 'Converted',
     icon: ArrowRight,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-100 dark:bg-purple-900/30'
+    color: 'text-teal-600',
+    bgColor: 'bg-teal-100 dark:bg-teal-900/30'
   },
   archived: {
     label: 'Archived',
@@ -120,8 +120,8 @@ const sourceIcons: Record<string, React.ElementType> = {
 
 const sourceColors: Record<string, string> = {
   manual: 'bg-blue-500',
-  email: 'bg-purple-500',
-  social: 'bg-gradient-to-r from-purple-500 to-pink-500',
+  email: 'bg-blue-500',
+  social: 'bg-gradient-to-r from-rose-500 to-orange-400',
   conversation: 'bg-green-500',
   article: 'bg-orange-500',
   other: 'bg-gray-500',
@@ -131,7 +131,7 @@ const sourceColors: Record<string, string> = {
 const getPlatformFromUrl = (url: string): { platform: string; icon: React.ElementType; color: string } => {
   try {
     const hostname = new URL(url).hostname.toLowerCase()
-    if (hostname.includes('instagram.com')) return { platform: 'Instagram', icon: Instagram, color: 'from-purple-500 to-pink-500' }
+    if (hostname.includes('instagram.com')) return { platform: 'Instagram', icon: Instagram, color: 'from-rose-500 to-orange-400' }
     if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) return { platform: 'YouTube', icon: Youtube, color: 'from-red-500 to-red-600' }
     if (hostname.includes('twitter.com') || hostname.includes('x.com')) return { platform: 'X/Twitter', icon: Twitter, color: 'from-blue-400 to-blue-500' }
     if (hostname.includes('tiktok.com')) return { platform: 'TikTok', icon: Video, color: 'from-black to-gray-800' }
@@ -614,7 +614,7 @@ export function InspirationsContent({ inspirations: initialInspirations, userId,
                     {/* Move to Idea Button - Prominent */}
                     <Button
                       size="sm"
-                      className="w-full gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-md"
+                      className="w-full gap-2"
                       onClick={() => handleTransformToIdea(inspiration)}
                     >
                       <ArrowRight className="h-4 w-4" />
